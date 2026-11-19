@@ -1,9 +1,8 @@
-import type { Modifier, NamedKey } from '../protocol';
-import { FOCUS_SETTLE_MS, type OsStep } from '../plan';
+import type { Modifier } from '../protocol';
+import { FOCUS_SETTLE_MS, type OpenProbe, type OsStep } from '../plan';
 import { expectApp, posixShell, type PlatformActions } from './context';
-import { MAC_KEY_CODES, MAC_MODIFIERS, mapModifiers } from './keys';
+import { MAC_KEY_CODES, MAC_MODIFIERS, macKeyCode, mapModifiers } from './keys';
 import { shQuote } from './quote';
-import { isPrintableKey } from './validate';
 
 /** keystroke handles this many characters per call reliably; longer text is split. */
 export const KEYSTROKE_CHUNK = 100;
@@ -51,19 +50,27 @@ export const macActions: PlatformActions = {
     return [{ kind: 'run', cmd: 'open', args: ['-a', mac.bundlePath], purpose: `open ${mac.entry.name}`, failure: 'plain' }];
   },
 
-  focus(app, ctx) {
-    // `open -a` brings a running app forward and starts it otherwise.
-    return [...macActions.launch(app, ctx), { kind: 'wait', ms: FOCUS_SETTLE_MS }];
+  focus(app, ctx, startWaitMs) {
+    const mac = expectApp(app, 'macos');
+    // lsappinfo only asks LaunchServices; once the app runs, `open -a` just brings it forward.
+    const probe: OpenProbe = {
+      kind: 'run',
+      cmd: 'lsappinfo',
+      args: ['find', `bundlepath=${mac.bundlePath}`],
+      purpose: `check whether ${mac.entry.name} is open`,
+      failure: 'plain',
+    };
+    return [
+      { kind: 'requireOpen', appName: mac.entry.name, probe, waitMs: startWaitMs },
+      ...macActions.launch(app, ctx),
+      { kind: 'wait', ms: FOCUS_SETTLE_MS },
+    ];
   },
 
   hotkey(modifiers, key) {
-    const using = usingClause(modifiers);
-    if (!isPrintableKey(key)) {
-      const press = `key code ${MAC_KEY_CODES[key as NamedKey]}${using}`;
-      return [osascript(['tell application "System Events"', press, 'end tell'], 'press the keys', 'mac-keystrokes')];
-    }
-    const { lines, names } = textVariables([key]);
-    return [osascript([...lines, 'tell application "System Events"', `keystroke ${names[0]}${using}`, 'end tell'], 'press the keys', 'mac-keystrokes')];
+    // By key position for every key: `keystroke` would look the character up in the active layout.
+    const press = `key code ${macKeyCode(key)}${usingClause(modifiers)}`;
+    return [osascript(['tell application "System Events"', press, 'end tell'], 'press the keys', 'mac-keystrokes')];
   },
 
   text(text, pressEnter) {

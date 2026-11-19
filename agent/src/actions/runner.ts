@@ -6,7 +6,7 @@ import type { InstalledApp } from '../apps/types';
 import { AgentError } from '../errors';
 import type { ExecuteOptions, Executor } from '../executor';
 import { resolveUserPath } from '../host';
-import type { Plan } from '../plan';
+import { APP_START_WAIT_MS, type Plan } from '../plan';
 import type { Action, CommandAction, RunResult, StepAction } from '../protocol';
 import { DEFAULT_COMMAND_TIMEOUT_SEC, type BackgroundOutcome } from './background';
 import type { BuildContext, PlatformActions, ShellInvocation } from './context';
@@ -22,6 +22,9 @@ export interface RunnerDeps {
   runBackground: (shell: ShellInvocation, cwd: string, timeoutSec: number) => Promise<BackgroundOutcome>;
   log: (line: string) => void;
 }
+
+/** Steps that can start an app, so a later step aimed at that app waits for it to come up. */
+const APP_STARTING_STEPS: ReadonlySet<StepAction['type']> = new Set(['launch', 'open', 'command', 'url']);
 
 /** A relative path is taken relative to the page folder when there is one. */
 function relativeTo(input: string, base: string | undefined, platform: string): string {
@@ -47,8 +50,9 @@ export class ActionRunner {
   private async runMacro(steps: { action: StepAction; delayMs: number }[], defaultCwd: string | undefined): Promise<Partial<RunResult>> {
     const notes: string[] = [];
     for (const [index, step] of steps.entries()) {
+      const mayHaveStartedApp = steps.slice(0, index).some((earlier) => APP_STARTING_STEPS.has(earlier.action.type));
       try {
-        const res = await this.runStep(step.action, defaultCwd);
+        const res = await this.runStep(step.action, defaultCwd, mayHaveStartedApp ? APP_START_WAIT_MS : 0);
         if (res.note) notes.push(`Step ${index + 1}: ${res.note}`);
       } catch (err) {
         const cause = err instanceof AgentError ? err : new AgentError('failed', (err as Error).message);
@@ -59,13 +63,14 @@ export class ActionRunner {
     return notes.length ? { note: notes.join(' ') } : {};
   }
 
-  private async runStep(action: Exclude<Action, { type: 'macro' }>, defaultCwd: string | undefined): Promise<Partial<RunResult>> {
+  /** `startWaitMs`: how long a step aimed at an app waits for it to start (an earlier step may have started it). */
+  private async runStep(action: Exclude<Action, { type: 'macro' }>, defaultCwd: string | undefined, startWaitMs = 0): Promise<Partial<RunResult>> {
     const { actions, ctx } = this.deps;
     switch (action.type) {
       case 'launch':
         return this.execute(actions.launch(await this.app(action.appId, action.appName), ctx));
       case 'hotkey': {
-        const focus = action.focusAppId ? actions.focus(await this.app(action.focusAppId), ctx) : [];
+        const focus = action.focusAppId ? actions.focus(await this.app(action.focusAppId), ctx, startWaitMs) : [];
         return this.execute([...focus, ...actions.hotkey(action.modifiers, action.key, ctx)]);
       }
       case 'text':

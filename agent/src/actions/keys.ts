@@ -28,6 +28,31 @@ export const MAC_KEY_CODES: Record<NamedKey, number> = {
   f11: 103, f12: 111, f13: 105, f14: 107, f15: 113, f16: 106, f17: 64, f18: 79, f19: 80, f20: 90,
 };
 
+/**
+ * Printable keys as positions, so a shortcut presses the same key whatever the Mac's layout is
+ * (`keystroke "`"` looks the character up in the active layout: on ABC-India that key types ₹ and
+ * ` needs Option, so Ctrl+` never arrived). Values are kVK_ANSI_* from HIToolbox Events.h
+ * (Carbon.framework/Frameworks/HIToolbox.framework/Headers/Events.h, macOS SDK).
+ */
+const MAC_LETTER_KEY_CODES: Record<string, number> = {
+  a: 0x00, s: 0x01, d: 0x02, f: 0x03, h: 0x04, g: 0x05, z: 0x06, x: 0x07, c: 0x08, v: 0x09,
+  b: 0x0b, q: 0x0c, w: 0x0d, e: 0x0e, r: 0x0f, y: 0x10, t: 0x11, o: 0x1f, u: 0x20, i: 0x22,
+  p: 0x23, l: 0x25, j: 0x26, k: 0x28, n: 0x2d, m: 0x2e,
+};
+
+const MAC_DIGIT_KEY_CODES: Record<string, number> = {
+  '1': 0x12, '2': 0x13, '3': 0x14, '4': 0x15, '6': 0x16, '5': 0x17, '9': 0x19, '7': 0x1a, '8': 0x1c, '0': 0x1d,
+};
+
+const MAC_PUNCTUATION_KEY_CODES: Record<keyof typeof PUNCTUATION_NAMES, number> = {
+  '=': 0x18, '-': 0x1b, ']': 0x1e, '[': 0x21, "'": 0x27, ';': 0x29, '\\': 0x2a, ',': 0x2b, '/': 0x2c, '.': 0x2f, '`': 0x32,
+};
+
+/** AppleScript `key code` for a named or printable key. */
+export function macKeyCode(key: string): number {
+  return MAC_KEY_CODES[key as NamedKey] ?? MAC_LETTER_KEY_CODES[key] ?? MAC_DIGIT_KEY_CODES[key] ?? lookup(MAC_PUNCTUATION_KEY_CODES, key);
+}
+
 export const MAC_MODIFIERS: Record<Modifier, string> = {
   mod: 'command down', meta: 'command down', ctrl: 'control down', alt: 'option down', shift: 'shift down',
 };

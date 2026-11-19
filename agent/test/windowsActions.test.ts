@@ -19,19 +19,24 @@ describe('Windows action builders', () => {
     });
   });
 
-  it('focuses via the helper by exe, launching when the app has no window', () => {
-    const [either, settle] = windowsActions.focus(winCode, ctx);
-    assert.equal(either!.kind, 'either');
-    const attempts = (either as Extract<OsStep, { kind: 'either' }>).attempts;
-    assert.deepEqual(attempts[0], [{ kind: 'helper', request: { op: 'focus', exe: 'C:\\Users\\Ada\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe', aumid: null }, purpose: 'bring Visual Studio Code to the front' }]);
-    assert.equal(attempts[1]![0]!.kind, 'detach');
-    assert.deepEqual(attempts[1]![1], { kind: 'wait', ms: 1500 });
-    assert.deepEqual(settle, { kind: 'wait', ms: 150 });
+  it('focuses via the helper by exe and never launches an app that has no window', () => {
+    const plan = windowsActions.focus(winCode, ctx, 0);
+    assert.deepEqual(plan, [
+      {
+        kind: 'requireOpen',
+        appName: 'Visual Studio Code',
+        probe: { kind: 'helper', request: { op: 'focus', exe: 'C:\\Users\\Ada\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe', aumid: null }, purpose: 'bring Visual Studio Code to the front' },
+        waitMs: 0,
+      },
+      { kind: 'wait', ms: 150 },
+    ]);
+    assert.ok(!plan.some((step) => step.kind === 'detach'));
   });
 
-  it('focuses Store apps by AUMID', () => {
-    const attempts = (windowsActions.focus(winCalculator, ctx)[0] as Extract<OsStep, { kind: 'either' }>).attempts;
-    assert.deepEqual((attempts[0]![0] as Extract<OsStep, { kind: 'helper' }>).request, { op: 'focus', exe: null, aumid: 'Microsoft.WindowsCalculator_8wekyb3d8bbwe!App' });
+  it('focuses Store apps by AUMID and passes the start wait on', () => {
+    const [check] = windowsActions.focus(winCalculator, ctx, 10_000);
+    assert.ok(check?.kind === 'requireOpen' && check.waitMs === 10_000);
+    assert.deepEqual(check.probe.kind === 'helper' && check.probe.request, { op: 'focus', exe: null, aumid: 'Microsoft.WindowsCalculator_8wekyb3d8bbwe!App' });
   });
 
   it('sends hotkeys as virtual-key codes (mod = Ctrl, meta = left Windows key)', () => {

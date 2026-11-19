@@ -3,7 +3,7 @@ import { expandExecArgs, tokenizeExec } from '../apps/desktopFile';
 import type { DesktopApp, InstalledApp } from '../apps/types';
 import { AgentError } from '../errors';
 import { currentDesktops, linuxSession, type HostContext } from '../host';
-import { FOCUS_SETTLE_MS, LAUNCH_SETTLE_MS, type OsStep, type Plan } from '../plan';
+import { FOCUS_SETTLE_MS, type OpenProbe, type OsStep, type Plan } from '../plan';
 import type { Modifier } from '../protocol';
 import { missingTool } from '../tools';
 import { expectApp, posixShell, type BuildContext, type PlatformActions } from './context';
@@ -140,20 +140,24 @@ function regexEscape(text: string): string {
 export const linuxActions: PlatformActions = {
   launch: launchPlan,
 
-  focus(app, ctx) {
+  focus(app, ctx, startWaitMs) {
     // Wayland has no way for a client to raise another app's window.
     if (linuxSession(ctx.env) === 'wayland' || !ctx.hasTool('xdotool')) return [];
     const { desktop, entry } = expectApp(app, 'linux');
+    const search = ['search', '--onlyvisible', '--class', `^${regexEscape(windowClassFor(desktop))}$`];
     const activate: OsStep = {
       kind: 'run',
       cmd: 'xdotool',
-      args: ['search', '--onlyvisible', '--class', `^${regexEscape(windowClassFor(desktop))}$`, 'windowactivate', '--sync'],
+      args: [...search, 'windowactivate', '--sync'],
       purpose: `bring ${entry.name} to the front`,
       failure: 'xdotool',
       timeoutMs: FOCUS_TIMEOUT_MS,
     };
+    // The search alone prints the app's window ids, or nothing when it has no window open.
+    const probe: OpenProbe = { kind: 'run', cmd: 'xdotool', args: search, purpose: `find ${entry.name}'s window`, failure: 'xdotool' };
     return [
-      { kind: 'either', attempts: [[activate], [...launchPlan(app, ctx), { kind: 'wait', ms: LAUNCH_SETTLE_MS }]] },
+      { kind: 'requireOpen', appName: entry.name, probe, waitMs: startWaitMs },
+      activate,
       { kind: 'wait', ms: FOCUS_SETTLE_MS },
     ];
   },

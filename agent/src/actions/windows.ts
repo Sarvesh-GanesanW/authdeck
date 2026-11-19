@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { InstalledApp } from '../apps/types';
-import { FOCUS_SETTLE_MS, LAUNCH_SETTLE_MS, type OsStep, type Plan } from '../plan';
+import { FOCUS_SETTLE_MS, type OsStep, type Plan } from '../plan';
 import { expectApp, type BuildContext, type PlatformActions, type ShellInvocation } from './context';
 import { VK_RETURN, WIN_MODIFIER_VK, mapModifiers, winKeyCode } from './keys';
 import { cmdQuotePath, encodePowerShellCommand, psQuote } from './quote';
@@ -36,20 +36,16 @@ export const windowsActions: PlatformActions = {
     return [launchStep(app)];
   },
 
-  focus(app) {
+  focus(app, _ctx, startWaitMs) {
     const winApp = expectApp(app, 'windows');
     const request =
       winApp.kind === 'lnk'
         ? { op: 'focus' as const, exe: winApp.targetPath || null, aumid: null }
         : { op: 'focus' as const, exe: null, aumid: winApp.aumid };
+    // The helper raises the app's window and reports not_found when it has none, so the check
+    // that it is open is also what brings it forward.
     return [
-      {
-        kind: 'either',
-        attempts: [
-          [{ kind: 'helper', request, purpose: `bring ${winApp.entry.name} to the front` }],
-          [launchStep(app), { kind: 'wait', ms: LAUNCH_SETTLE_MS }],
-        ],
-      },
+      { kind: 'requireOpen', appName: winApp.entry.name, probe: { kind: 'helper', request, purpose: `bring ${winApp.entry.name} to the front` }, waitMs: startWaitMs },
       { kind: 'wait', ms: FOCUS_SETTLE_MS },
     ];
   },

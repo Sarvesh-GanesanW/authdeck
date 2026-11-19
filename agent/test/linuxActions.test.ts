@@ -94,23 +94,27 @@ describe('Linux action builders', () => {
     assert.deepEqual(args(linuxActions.launch(htop, x11(['xterm']))[0]), ['xterm', '-e', 'htop']);
   });
 
-  it('focuses by WM class with xdotool, falling back to launching', () => {
-    const [either, settle] = linuxActions.focus(linuxCode, x11());
-    const attempts = (either as Extract<OsStep, { kind: 'either' }>).attempts;
-    assert.deepEqual(args(attempts[0]![0]), ['xdotool', 'search', '--onlyvisible', '--class', '^Code$', 'windowactivate', '--sync']);
-    assert.deepEqual(args(attempts[1]![0]), ['gtk-launch', 'code']);
-    assert.deepEqual(settle, { kind: 'wait', ms: 150 });
+  it('focuses by WM class with xdotool once a window is found, never launching the app', () => {
+    const plan = linuxActions.focus(linuxCode, x11(), 0);
+    assert.deepEqual(plan[0], {
+      kind: 'requireOpen',
+      appName: 'Visual Studio Code',
+      probe: { kind: 'run', cmd: 'xdotool', args: ['search', '--onlyvisible', '--class', '^Code$'], purpose: "find Visual Studio Code's window", failure: 'xdotool' },
+      waitMs: 0,
+    });
+    assert.deepEqual(args(plan[1]), ['xdotool', 'search', '--onlyvisible', '--class', '^Code$', 'windowactivate', '--sync']);
+    assert.deepEqual(plan[2], { kind: 'wait', ms: 150 });
+    assert.equal(plan.length, 3);
   });
 
   it('escapes regex characters in the WM class and falls back to the Exec name', () => {
     const app = { ...linuxCode, desktop: { ...(linuxCode as { desktop: object }).desktop, startupWMClass: null, exec: '/opt/my.app/run+me %U' } } as typeof linuxCode;
     assert.equal(windowClassFor((app as { desktop: Parameters<typeof windowClassFor>[0] }).desktop), 'run+me');
-    const attempts = (linuxActions.focus(app, x11())[0] as Extract<OsStep, { kind: 'either' }>).attempts;
-    assert.equal(args(attempts[0]![0])[4], '^run\\+me$');
+    assert.equal(args(linuxActions.focus(app, x11(), 0)[1])[4], '^run\\+me$');
   });
 
   it('skips focusing on Wayland, where it is not possible', () => {
-    assert.deepEqual(linuxActions.focus(linuxCode, wayland(['wtype'])), []);
+    assert.deepEqual(linuxActions.focus(linuxCode, wayland(['wtype']), 0), []);
   });
 
   it('presses keys with each tool', () => {

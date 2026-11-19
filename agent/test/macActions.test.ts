@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { describe, it } from 'node:test';
 import { KEYSTROKE_CHUNK, appleScriptText, chunkText, macActions, textVariables } from '../src/actions/mac';
+import { PRINTABLE_PUNCTUATION } from '../src/protocol';
 import { describePlan } from '../src/plan';
 import { buildContext, macSafari } from './helpers/context';
 
@@ -40,13 +41,40 @@ describe('macOS action builders', () => {
     assert.deepEqual(describePlan(macActions.launch(macSafari, ctx)), ['run: open -a /Applications/Safari.app']);
   });
 
-  it('focuses by opening the app, then waits', () => {
-    assert.deepEqual(describePlan(macActions.focus(macSafari, ctx)), ['run: open -a /Applications/Safari.app', 'wait 150 ms']);
+  it('focuses only an app that is already open, checked with lsappinfo, never starting it', () => {
+    const plan = macActions.focus(macSafari, ctx, 0);
+    assert.deepEqual(plan[0], {
+      kind: 'requireOpen',
+      appName: 'Safari',
+      probe: { kind: 'run', cmd: 'lsappinfo', args: ['find', 'bundlepath=/Applications/Safari.app'], purpose: 'check whether Safari is open', failure: 'plain' },
+      waitMs: 0,
+    });
+    assert.deepEqual(describePlan(plan.slice(1)), ['run: open -a /Applications/Safari.app', 'wait 150 ms']);
   });
 
-  it('presses printable keys with keystroke, the key spelled as a code point', () => {
-    const script = stdinScript(macActions.hotkey(['mod', 'shift'], 't', ctx)[0]);
-    assert.deepEqual(script, ['set authdeckText1 to (character id {116})', 'tell application "System Events"', 'keystroke authdeckText1 using {command down, shift down}', 'end tell']);
+  it('passes the start wait on to the open check', () => {
+    const [check] = macActions.focus(macSafari, ctx, 10_000);
+    assert.ok(check?.kind === 'requireOpen' && check.waitMs === 10_000);
+  });
+
+  it('presses printable keys by key position, so the layout cannot change them (Ctrl+` on ABC-India)', () => {
+    assert.deepEqual(stdinScript(macActions.hotkey(['ctrl'], '`', ctx)[0]), ['tell application "System Events"', 'key code 50 using {control down}', 'end tell']);
+    assert.deepEqual(stdinScript(macActions.hotkey(['mod', 'shift'], 't', ctx)[0]), ['tell application "System Events"', 'key code 17 using {command down, shift down}', 'end tell']);
+  });
+
+  it('maps every printable key the protocol allows to its kVK_ANSI_* code', () => {
+    // kVK_ANSI_* from HIToolbox Events.h, written out independently of the table in keys.ts.
+    const expected: Record<string, number> = {
+      a: 0, s: 1, d: 2, f: 3, h: 4, g: 5, z: 6, x: 7, c: 8, v: 9, b: 11, q: 12, w: 13, e: 14, r: 15, y: 16, t: 17,
+      '1': 18, '2': 19, '3': 20, '4': 21, '6': 22, '5': 23, '=': 24, '9': 25, '7': 26, '-': 27, '8': 28, '0': 29,
+      ']': 30, o: 31, u: 32, '[': 33, i: 34, p: 35, l: 37, j: 38, "'": 39, k: 40, ';': 41, '\\': 42, ',': 43, '/': 44,
+      n: 45, m: 46, '.': 47, '`': 50,
+    };
+    const printable = [...'abcdefghijklmnopqrstuvwxyz0123456789', ...PRINTABLE_PUNCTUATION];
+    assert.deepEqual(Object.keys(expected).sort(), [...printable].sort());
+    for (const key of printable) {
+      assert.deepEqual(stdinScript(macActions.hotkey([], key, ctx)[0]), ['tell application "System Events"', `key code ${expected[key]}`, 'end tell'], key);
+    }
   });
 
   it('presses named keys by key code', () => {
@@ -124,7 +152,6 @@ describe('macOS action builders', () => {
 
   it('builds every text before any tell block, where the app would be asked to resolve character id', () => {
     const scripts = [
-      macActions.hotkey(['mod'], 'k', ctx)[0],
       macActions.text('x'.repeat(KEYSTROKE_CHUNK + 1), true, ctx)[0],
       macActions.terminal('ls', '/tmp', ctx)[0],
       macActions.terminal('ls', '/tmp', { ...ctx, terminal: 'iTerm' })[0],
@@ -140,8 +167,8 @@ describe('macOS action builders', () => {
     assert.deepEqual(textVariables([]), { lines: [], names: [] });
   });
 
-  it('hands System Events the exact text to type, for codes and shortcut keys', { skip: process.platform !== 'darwin' }, () => {
-    for (const [step, expected] of [[macActions.text('482913', false, ctx)[0], '482913'], [macActions.hotkey(['mod', 'shift'], 't', ctx)[0], 't']] as const) {
+  it('hands System Events the exact text to type, for codes', { skip: process.platform !== 'darwin' }, () => {
+    for (const [step, expected] of [[macActions.text('482913', false, ctx)[0], '482913']] as const) {
       // keystroke becomes return, so the script runs in System Events but types nothing.
       const out = execFileSync('osascript', [], { input: `${returningInsteadOfTyping(stdinScript(step))}\n`, encoding: 'utf8' });
       assert.equal(out.replace(/\n$/, ''), expected);
@@ -151,6 +178,8 @@ describe('macOS action builders', () => {
   it('produces AppleScript that compiles', { skip: process.platform !== 'darwin' }, () => {
     const steps = [
       macActions.hotkey(['mod', 'alt'], '/', ctx)[0],
+      macActions.hotkey(['ctrl'], '`', ctx)[0],
+      macActions.hotkey(['mod', 'shift', 'ctrl', 'alt'], '\\', ctx)[0],
       macActions.hotkey([], 'f13', ctx)[0],
       macActions.terminal('ls', '/tmp', ctx)[0],
       macActions.text('x"y', true, ctx)[0],

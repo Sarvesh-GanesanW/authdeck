@@ -33,6 +33,15 @@ export function rateLimited(message: string): AgentError {
   return new AgentError('rate_limited', message);
 }
 
+/** A key aimed at an app that isn't running: the agent never starts it, and says so on the key. */
+export function appNotOpen(appName: string, waitedMs: number): AgentError {
+  const hint =
+    waitedMs > 0
+      ? `It didn't start within ${Math.round(waitedMs / 1000)} seconds. Give the step that opens it a longer delay, or open it first.`
+      : `Open ${appName} first, then press the key again.`;
+  return new AgentError('not_found', `${appName} isn't open.`, hint);
+}
+
 /**
  * Converts anything thrown into the wire error shape. An unexpected error's message can name
  * files on this computer, so it stays in the agent's log and the device gets a generic sentence.

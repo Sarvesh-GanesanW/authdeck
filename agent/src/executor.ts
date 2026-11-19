@@ -1,14 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { AgentError } from './errors';
+import { AgentError, appNotOpen } from './errors';
 import { classifyFailure } from './failures';
-import { describePlan, type OsStep, type Plan } from './plan';
+import { LAUNCH_SETTLE_MS, describePlan, type OpenProbe, type OsStep, type Plan } from './plan';
 import type { WinHelper } from './platform/winHelper';
 import { isSpawnNotFound, runProcess, spawnDetached } from './proc';
 import { missingTool } from './tools';
 
 const DEFAULT_RUN_TIMEOUT_MS = 15_000;
+const OPEN_PROBE_TIMEOUT_MS = 3000;
+const OPEN_POLL_MS = 250;
 
 export interface ExecuteOptions {
   /** The plan carries a secret (a typed 2FA code): never print or echo its steps. */
@@ -64,8 +66,8 @@ export class PlanExecutor {
       case 'wait':
         await sleep(step.ms);
         return;
-      case 'either':
-        return this.either(step.attempts);
+      case 'requireOpen':
+        return this.requireOpen(step);
     }
   }
 
@@ -82,24 +84,52 @@ export class PlanExecutor {
   }
 
   private async helper(step: Extract<OsStep, { kind: 'helper' }>): Promise<void> {
-    if (!this.deps.winHelper) throw new Error('The Windows helper is only available on Windows.');
-    const response = await this.deps.winHelper.request(step.request);
+    const response = await this.winHelper().request(step.request);
     if (response.ok) return;
     if (response.error === 'not_found') throw new AgentError('not_found', `Could not ${step.purpose}: it has no open window.`);
     throw new AgentError('failed', `Could not ${step.purpose}: ${response.error ?? 'unknown error'}`);
   }
 
-  private async either(attempts: Plan[]): Promise<void> {
-    let lastError: unknown = new Error('No alternatives to try.');
-    for (const attempt of attempts) {
-      try {
-        await this.execute(attempt);
+  private winHelper(): WinHelper {
+    if (!this.deps.winHelper) throw new Error('The Windows helper is only available on Windows.');
+    return this.deps.winHelper;
+  }
+
+  private async requireOpen(step: Extract<OsStep, { kind: 'requireOpen' }>): Promise<void> {
+    const deadline = Date.now() + step.waitMs;
+    if (await this.isOpen(step.probe)) return;
+    while (Date.now() < deadline) {
+      await sleep(Math.min(OPEN_POLL_MS, deadline - Date.now()));
+      if (await this.isOpen(step.probe)) {
+        // It has only just started: give it time to show a window that can take keys.
+        await sleep(LAUNCH_SETTLE_MS);
         return;
-      } catch (err) {
-        lastError = err;
       }
     }
-    throw lastError;
+    throw appNotOpen(step.appName, step.waitMs);
+  }
+
+  private async isOpen(probe: OpenProbe): Promise<boolean> {
+    if (probe.kind === 'helper') {
+      const response = await this.winHelper().request(probe.request);
+      if (response.ok) return true;
+      if (response.error === 'not_found') return false;
+      throw new AgentError('failed', `Could not ${probe.purpose}: ${response.error ?? 'unknown error'}`);
+    }
+    let outcome;
+    try {
+      outcome = await runProcess(probe.cmd, probe.args, { timeoutMs: OPEN_PROBE_TIMEOUT_MS, tailChars: 4000 });
+    } catch (err) {
+      if (isSpawnNotFound(err)) throw missingTool(probe.cmd, probe.purpose);
+      throw err;
+    }
+    if (outcome.timedOut) throw new AgentError('failed', `${probe.cmd} took too long to ${probe.purpose}.`);
+    if (outcome.stdout.trim() !== '') return true;
+    // A search that finds nothing may exit nonzero quietly; one that couldn't search says why.
+    if (outcome.exitCode !== 0 && outcome.stderr.trim() !== '') {
+      throw classifyFailure(probe.failure, probe.cmd, probe.purpose, outcome.stderr, this.deps.hostAppName);
+    }
+    return false;
   }
 }
 

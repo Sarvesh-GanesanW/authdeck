@@ -205,14 +205,18 @@ The log has one line per action. It never contains keys, PINs, QR codes or the t
 | Action | macOS | Windows | Linux |
 |---|---|---|---|
 | Open app | `open -a <app>` (brings it forward if running) | Start Menu shortcut or Store app via `explorer.exe` | `gtk-launch <id>`, else the app's `Exec` line |
-| Shortcut | System Events `keystroke` / `key code` | `SendInput` from a background PowerShell helper | X11 `xdotool key`; Wayland `wtype` or `ydotool` |
-| Shortcut "in app" | opens/activates the app first | raises its window (starts it if not running) | X11: `xdotool windowactivate` by window class, else starts it. Wayland: not possible, keys go to the app in front |
+| Shortcut | System Events `key code` (every key by position) | `SendInput` from a background PowerShell helper | X11 `xdotool key`; Wayland `wtype` or `ydotool` |
+| Shortcut "in app" | activates the app if it's running (checked with `lsappinfo`) | raises its window | X11: `xdotool windowactivate` by window class. Wayland: not possible, keys go to the app in front |
 | Type text | `keystroke` (long text in chunks) | Unicode `SendInput` | `xdotool type` / `wtype` / `ydotool type` |
 | Command in terminal | new Terminal (or iTerm) window | Windows Terminal, else a `cmd` window (`powershell`/`pwsh` if configured) | `$TERMINAL`, then x-terminal-emulator, gnome-terminal, konsole, kitty, alacritty, wezterm, xfce4-terminal, xterm |
 | Command in background | your login shell (`$SHELL -lc`) | `cmd.exe` (or PowerShell if configured) | your login shell (`$SHELL -lc`) |
 | Link | `open <url>` | `url.dll` file protocol handler | `xdg-open` |
 | File or folder | `open` / `open -a <app>` | default app, or the app's exe | `xdg-open`, or the app's `Exec` line |
 | Macro | runs the steps in order, waiting after each; stops at the first failing step |||
+
+A shortcut aimed at an app never starts that app. If the app isn't open, no keys are sent and the key
+shows "<app> isn't open." In a macro, a shortcut that comes after a step that can start apps (open
+app, file or folder, link, command) waits up to 10 seconds for its app to open first.
 
 A background command runs in the key's folder, or the page's project folder, or else your home
 folder. It returns the exit code and the last 8000 characters of output. If it's still going when
@@ -226,9 +230,9 @@ A terminal command opens a window in the folder, runs, and leaves the window ope
 On Wayland the agent can't tell which app is in front, so focus tracking is off, and it can't
 bring a window forward before sending a shortcut. wtype doesn't work on GNOME; use ydotool there.
 
-Letter and punctuation shortcuts go out as characters on macOS and X11, and as US-layout key
-positions on Windows and with ydotool. On a non-US layout, a few punctuation shortcuts may land on
-a different key.
+Letter and punctuation shortcuts go out as US-layout key positions on macOS, Windows and with
+ydotool, and as characters on X11 and with wtype. On a non-US layout, a few punctuation shortcuts
+may land on a different key there.
 
 On Windows, "open with" works for apps whose Start Menu shortcut points at an `.exe`. Store apps
 and some Office installs open the file in its default app instead, and the agent logs that it did.

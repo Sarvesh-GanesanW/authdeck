@@ -11,7 +11,7 @@ import { windowsActions } from '../src/actions/windows';
 import { AppCatalog } from '../src/apps/catalog';
 import type { InstalledApp } from '../src/apps/types';
 import { AgentError } from '../src/errors';
-import { describePlan, type OsStep, type Plan } from '../src/plan';
+import { APP_START_WAIT_MS, describePlan, type OsStep, type Plan } from '../src/plan';
 import type { Platform } from '../src/protocol';
 import { buildContext, linuxCode, macSafari, winCalculator, winCode } from './helpers/context';
 
@@ -52,9 +52,21 @@ describe('ActionRunner', () => {
     const t = setup('macos', [macSafari], macActions);
     await t.runner.run({ action: { type: 'hotkey', modifiers: ['mod'], key: 'l', focusAppId: macSafari.entry.id } });
     const lines = describePlan(t.plans[0]!);
-    assert.deepEqual(lines.slice(0, 2), ['run: open -a /Applications/Safari.app', 'wait 150 ms']);
-    const press = t.plans[0]![2]!;
-    assert.ok(press.kind === 'run' && press.cmd === 'osascript' && /keystroke/.test(press.input ?? ''));
+    assert.deepEqual(lines.slice(0, 3), ['require Safari open: lsappinfo find bundlepath=/Applications/Safari.app', 'run: open -a /Applications/Safari.app', 'wait 150 ms']);
+    const press = t.plans[0]![3]!;
+    assert.ok(press.kind === 'run' && press.cmd === 'osascript' && /key code 37 using \{command down\}/.test(press.input ?? ''));
+  });
+
+  it('a lone shortcut looks once for its app; in a sequence it waits for an app an earlier step may have started', async () => {
+    const t = setup('macos', [macSafari], macActions);
+    const hotkey = { type: 'hotkey', modifiers: ['mod'], key: 'l', focusAppId: macSafari.entry.id };
+    const waitOf = (plan: Plan) => (plan[0]?.kind === 'requireOpen' ? plan[0].waitMs : undefined);
+    await t.runner.run({ action: hotkey });
+    await t.runner.run({ action: { type: 'macro', steps: [{ action: hotkey, delayMs: 0 }, { action: hotkey, delayMs: 0 }] } });
+    await t.runner.run({
+      action: { type: 'macro', steps: [{ action: { type: 'launch', appId: macSafari.entry.id, appName: 'Safari' }, delayMs: 0 }, { action: hotkey, delayMs: 0 }] },
+    });
+    assert.deepEqual(t.plans.map(waitOf), [0, 0, 0, undefined, APP_START_WAIT_MS]);
   });
 
   it('runs background commands in action.cwd, else params.cwd, else home, with the default timeout', async () => {
@@ -148,7 +160,6 @@ describe('ActionRunner', () => {
     const commandLines = (plan: Plan): string[] =>
       plan.flatMap((step: OsStep): string[] => {
         if (step.kind === 'run' || step.kind === 'detach') return [step.cmd, ...step.args];
-        if (step.kind === 'either') return step.attempts.flatMap(commandLines);
         return [];
       });
     const cases: [string, ReturnType<typeof setup>][] = [

@@ -23,8 +23,9 @@ export interface ShellInvocation {
 /** Per-platform translation of actions into OS steps. Every function is pure. */
 export interface PlatformActions {
   launch(app: InstalledApp, ctx: BuildContext): Plan;
-  /** Bring an app forward before keys are sent. */
-  focus(app: InstalledApp, ctx: BuildContext): Plan;
+  /** Bring an app forward before keys are sent. Never starts it: when it isn't open the plan
+   *  fails, after waiting up to `startWaitMs` for an app an earlier step may have started. */
+  focus(app: InstalledApp, ctx: BuildContext, startWaitMs: number): Plan;
   hotkey(modifiers: readonly Modifier[], key: string, ctx: BuildContext): Plan;
   text(text: string, pressEnter: boolean, ctx: BuildContext): Plan;
   terminal(command: string, cwd: string, ctx: BuildContext): Plan;
