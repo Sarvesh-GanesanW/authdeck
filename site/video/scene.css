@@ -1,0 +1,355 @@
+/*
+ * The AuthDeck promo, drawn the way the site and app draw: voxel-stepped corners, hard shadows,
+ * Pixelify Sans for titles and IBM Plex Mono for everything else, in the Graphite colourway
+ * (tokens copied from site/src/style.css). Nothing here animates on its own: scene.js sets every
+ * element's state for a given time, so any frame can be rendered on demand.
+ */
+
+@font-face { font-family: 'Pixelify'; src: url('../src/fonts/PixelifySans_400Regular.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Pixelify'; src: url('../src/fonts/PixelifySans_600SemiBold.woff2') format('woff2'); font-weight: 600; }
+@font-face { font-family: 'Plex'; src: url('../src/fonts/IBMPlexMono_400Regular.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Plex'; src: url('../src/fonts/IBMPlexMono_500Medium.woff2') format('woff2'); font-weight: 500; }
+@font-face { font-family: 'Plex'; src: url('../src/fonts/IBMPlexMono_600SemiBold.woff2') format('woff2'); font-weight: 600; }
+
+:root {
+  --v: 4px;
+  --vox: polygon(var(--v) 0, calc(100% - var(--v)) 0, calc(100% - var(--v)) var(--v), 100% var(--v), 100% calc(100% - var(--v)), calc(100% - var(--v)) calc(100% - var(--v)), calc(100% - var(--v)) 100%, var(--v) 100%, var(--v) calc(100% - var(--v)), 0 calc(100% - var(--v)), 0 var(--v), var(--v) var(--v));
+  --vox2: polygon(calc(2 * var(--v)) 0, calc(100% - 2 * var(--v)) 0, calc(100% - 2 * var(--v)) var(--v), calc(100% - var(--v)) var(--v), calc(100% - var(--v)) calc(2 * var(--v)), 100% calc(2 * var(--v)), 100% calc(100% - 2 * var(--v)), calc(100% - var(--v)) calc(100% - 2 * var(--v)), calc(100% - var(--v)) calc(100% - var(--v)), calc(100% - 2 * var(--v)) calc(100% - var(--v)), calc(100% - 2 * var(--v)) 100%, calc(2 * var(--v)) 100%, calc(2 * var(--v)) calc(100% - var(--v)), var(--v) calc(100% - var(--v)), var(--v) calc(100% - 2 * var(--v)), 0 calc(100% - 2 * var(--v)), 0 calc(2 * var(--v)), var(--v) calc(2 * var(--v)), var(--v) var(--v), calc(2 * var(--v)) var(--v));
+  --pixel: 'Pixelify', 'Plex', monospace;
+  --mono: 'Plex', ui-monospace, monospace;
+
+  /* Graphite */
+  --case: #22262e; --plate: #191c22; --socket: #14161b; --surface: #2a2e37; --field: #1d2027;
+  --line: rgba(255, 255, 255, 0.09);
+  --text: #f0eadc; --dim: #a9b1bf; --faint: #7f8898;
+  --ok: #62e3a0; --run: #ffc857; --danger: #ff6b5e; --danger-text: #ff9b8a;
+  --focus: #e8ad44; --shadow: rgba(0, 0, 0, 0.32); --lip: rgba(0, 0, 0, 0.38);
+  --control-hi: #3a404c; --control-top: #2e333d; --control-shade: #272b33; --control-front: #1f2329;
+  --float-hi: #454b59; --float-top: #343a46; --float-shade: #2d323d; --float-front: #262a33;
+  --alpha-hi: #535c6e; --alpha-top: #434a58; --alpha-shade: #3a404c; --alpha-front: #2b3039; --alpha-legend: #f0eadc; --alpha-sub: #a9b1bf;
+  --mod-hi: #3e4451; --mod-top: #30353f; --mod-shade: #2a2e37; --mod-front: #1f2329; --mod-legend: #cbd1db; --mod-sub: #949dac;
+  --a-hi: #f6c976; --a-top: #e8ad44; --a-shade: #d09833; --a-front: #a87425; --a-legend: #2a1c07; --a-sub: #1a1103;
+  --b-hi: #7acfbd; --b-top: #5cb7a3; --b-shade: #4ca18e; --b-front: #3f8e7d; --b-legend: #0b231e; --b-sub: #04120e;
+  --c-hi: #b8b9f5; --c-top: #9c9de9; --c-shade: #8a8bd9; --c-front: #7778c6; --c-legend: #16173a; --c-sub: #0b0c24;
+
+  /* Frame grid: 96 px margins, the phone and the computer side by side under the caption. */
+  --margin: 96px;
+  --stage-top: 176px;
+  --phone-w: 420px;
+  --stage-h: 840px;
+  --gutter: 64px;
+}
+
+*, *::before, *::after { box-sizing: border-box; animation: none !important; transition: none !important; }
+
+html, body {
+  margin: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--case);
+  color: var(--text);
+  font: 400 20px/1.5 var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+p { margin: 0; }
+svg { fill: currentColor; flex: none; }
+svg[hidden] { display: none; }
+[hidden] { display: none !important; }
+
+.scene { position: absolute; inset: 0; }
+
+/* ---------- Raised blocks (site/src/style.css) ---------- */
+
+.btn, .key {
+  --hi: var(--control-hi); --top: var(--control-top); --shade: var(--control-shade); --front: var(--control-front);
+  --legend: var(--text); --sub: var(--dim);
+  filter: drop-shadow(var(--v) var(--v) 0 var(--shadow));
+}
+[data-tone='alpha'] { --hi: var(--alpha-hi); --top: var(--alpha-top); --shade: var(--alpha-shade); --front: var(--alpha-front); --legend: var(--alpha-legend); --sub: var(--alpha-sub); }
+[data-tone='a'], .btn-primary { --hi: var(--a-hi); --top: var(--a-top); --shade: var(--a-shade); --front: var(--a-front); --legend: var(--a-legend); --sub: var(--a-sub); }
+[data-tone='b'] { --hi: var(--b-hi); --top: var(--b-top); --shade: var(--b-shade); --front: var(--b-front); --legend: var(--b-legend); --sub: var(--b-sub); }
+[data-tone='c'] { --hi: var(--c-hi); --top: var(--c-top); --shade: var(--c-shade); --front: var(--c-front); --legend: var(--c-legend); --sub: var(--c-sub); }
+.is-down { filter: none; }
+
+.btn-face, .key-face {
+  --depth: var(--v);
+  position: relative;
+  isolation: isolate;
+  clip-path: var(--vox);
+  background: var(--front);
+  color: var(--legend);
+}
+.btn-face::before, .key-face::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 var(--depth) 0;
+  background: var(--shade);
+  z-index: -1;
+}
+.btn-face::after, .key-face::after {
+  content: '';
+  position: absolute;
+  top: var(--v); left: var(--v); right: var(--v);
+  bottom: calc(var(--depth) + var(--v));
+  background: var(--top);
+  box-shadow: calc(-1 * var(--v)) calc(-1 * var(--v)) 0 0 var(--hi);
+  z-index: -1;
+}
+
+.btn { display: flex; font: 600 19px/1 var(--mono); }
+.btn-face {
+  --depth: 6px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  padding: var(--v) 16px calc(var(--depth) + var(--v));
+  white-space: nowrap;
+}
+.btn-quiet .btn-face { font-weight: 500; font-size: 17px; min-height: 54px; }
+.btn-danger { --legend: var(--danger-text); }
+
+/* Keys: icon and label on the top face, what it does on the front strip, a status pixel. */
+.key { position: relative; }
+.key-face { --depth: 28px; display: block; height: 100%; }
+.key-top, .key-flash, .key-march {
+  position: absolute;
+  top: var(--v); left: var(--v); right: var(--v);
+  bottom: calc(var(--depth) + var(--v));
+}
+.key-top { display: flex; flex-direction: column; justify-content: space-between; padding: 14px 14px 12px; }
+.key-icon { width: 48px; height: 48px; }
+.key-label { font: 600 19px/1.25 var(--mono); }
+.key-sub {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--depth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sub);
+  font: 500 15px/1 var(--mono);
+  white-space: nowrap;
+}
+.key-light {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 10px; height: 10px;
+  background: color-mix(in srgb, var(--legend) 22%, transparent);
+}
+.key.is-running .key-light { background: var(--run); }
+.key.is-running.is-blink-off .key-light { opacity: 0.35; }
+.key.is-ok .key-light { background: var(--ok); }
+.key-flash { background: var(--hi); opacity: 0; }
+.key-march {
+  opacity: 0;
+  background:
+    linear-gradient(90deg, var(--legend) 50%, transparent 0) var(--march, 0px) 0 / 8px 3px repeat-x,
+    linear-gradient(90deg, var(--legend) 50%, transparent 0) calc(-1 * var(--march, 0px)) 100% / 8px 3px repeat-x,
+    linear-gradient(0deg, var(--legend) 50%, transparent 0) 0 calc(-1 * var(--march, 0px)) / 3px 8px repeat-y,
+    linear-gradient(0deg, var(--legend) 50%, transparent 0) 100% var(--march, 0px) / 3px 8px repeat-y;
+}
+.key.is-running .key-march { opacity: 0.85; }
+.key-code .key-top { justify-content: flex-start; gap: 12px; }
+.key-digits { font: 600 27px/1 var(--mono); margin-top: auto; white-space: nowrap; }
+.key-timer, .vault-timer { display: block; height: 4px; background: color-mix(in srgb, var(--legend) 18%, transparent); }
+.key-timer > span, .vault-timer > span { display: block; height: 100%; background: currentColor; }
+
+/* ---------- Title cards ---------- */
+
+.card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 72px; text-align: center; }
+.mark { display: block; shape-rendering: crispEdges; }
+.mark-big { width: 272px; height: 288px; }
+.lockup { display: flex; align-items: center; gap: 40px; }
+.mark-lockup { width: 136px; height: 144px; }
+.wordmark { font: 600 128px/1 var(--pixel); }
+.headline { font: 600 84px/1.12 var(--pixel); max-width: 1320px; margin: 0; }
+.end-line { font: 600 88px/1.1 var(--pixel); margin: 0; }
+.end-sub { font: 400 44px/1.3 var(--mono); color: var(--dim); }
+.end-stack { display: flex; flex-direction: column; align-items: center; gap: 32px; }
+.end-final { gap: 40px; }
+.mark-end { width: 204px; height: 216px; }
+.end-url { font: 500 52px/1 var(--mono); color: var(--focus); }
+
+/* ---------- Stage: caption, phone, computer ---------- */
+
+.caption {
+  position: absolute;
+  left: var(--margin);
+  top: 64px;
+  margin: 0;
+  font: 600 64px/80px var(--pixel);
+  white-space: nowrap;
+}
+
+.phone {
+  position: absolute;
+  left: var(--margin);
+  top: var(--stage-top);
+  width: var(--phone-w);
+  height: var(--stage-h);
+  padding: 14px;
+  background: #101216;
+  clip-path: var(--vox2);
+}
+.phone-wrap { filter: drop-shadow(8px 8px 0 var(--shadow)); position: absolute; inset: 0; }
+.screen {
+  position: relative;
+  height: 100%;
+  background: var(--case);
+  clip-path: var(--vox);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.status { display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 20px; font: 600 17px/1 var(--mono); }
+.status svg { width: 22px; height: 22px; }
+.tabs { display: flex; gap: 4px; margin: 4px 14px 14px; padding: 4px; background: var(--socket); clip-path: var(--vox); }
+.tab { flex: 1; text-align: center; font: 600 17px/40px var(--pixel); color: var(--faint); }
+.tab.is-on { background: var(--alpha-shade); color: var(--text); clip-path: var(--vox); }
+.deck {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 150px;
+  gap: 14px;
+  margin: 0 14px;
+  padding: 14px;
+  background: var(--plate);
+  clip-path: var(--vox2);
+  box-shadow: inset 0 var(--v) 0 var(--lip);
+}
+.home-bar { margin: auto auto 12px; width: 120px; height: 6px; background: var(--faint); }
+
+/* Codes list (the app's vault). */
+.codes { padding: 8px 22px; }
+.codes-title { font: 600 34px/1.3 var(--pixel); margin: 6px 0 10px; }
+.vault-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'who code' 'timer timer';
+  gap: 12px 12px;
+  align-items: center;
+  padding: 18px 0;
+  border-top: 2px solid var(--line);
+  color: var(--focus);
+}
+.vault-row.is-flash::before { content: ''; position: absolute; inset: 2px -10px; background: var(--alpha-shade); z-index: -1; }
+.vault-row.is-flash-2::before { background: var(--alpha-front); }
+.vault-who { grid-area: who; display: grid; color: var(--text); }
+.vault-name { font: 600 21px/1.35 var(--mono); }
+.vault-user { color: var(--faint); font-size: 16px; }
+.vault-code { grid-area: code; font: 600 32px/1 var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+.vault-timer { grid-area: timer; --legend: var(--text); }
+.codes-list { position: relative; isolation: isolate; border-bottom: 2px solid var(--line); }
+.codes-add { margin-top: 22px; }
+.codes-add .btn-face { gap: 10px; }
+.codes-add svg { width: 24px; height: 24px; }
+
+/* The request sheet over the deck. */
+.scrim { position: absolute; inset: 0; background: rgba(8, 9, 12, 0.6); }
+.sheet {
+  position: absolute;
+  left: 10px; right: 10px; bottom: 10px;
+  padding: 26px 22px 22px;
+  display: grid;
+  gap: 10px;
+  background: var(--float-top);
+  clip-path: var(--vox2);
+}
+.sheet-title { font: 600 30px/1.25 var(--pixel); }
+.sheet-sub { color: var(--dim); font-size: 17px; line-height: 1.5; }
+.sheet-buttons { display: grid; gap: 16px; margin-top: 14px; }
+.sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* The tap marker: a stepped dot where the finger lands and one pixel ring around it. */
+.tap { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 5; }
+.tap-dot {
+  position: absolute;
+  width: 36px; height: 36px;
+  margin: -18px 0 0 -18px;
+  background: var(--text);
+  clip-path: polygon(12px 0, 24px 0, 24px 4px, 30px 4px, 30px 8px, 34px 8px, 34px 12px, 36px 12px, 36px 24px, 34px 24px, 34px 28px, 30px 28px, 30px 32px, 24px 32px, 24px 36px, 12px 36px, 12px 32px, 6px 32px, 6px 28px, 2px 28px, 2px 24px, 0 24px, 0 12px, 2px 12px, 2px 8px, 6px 8px, 6px 4px, 12px 4px);
+  opacity: 0.9;
+}
+.tap-ring {
+  position: absolute;
+  border: 4px solid var(--text);
+  clip-path: var(--vox);
+}
+
+/* ---------- The computer: a plain window with an editor and a terminal ---------- */
+
+.window {
+  position: absolute;
+  left: calc(var(--margin) + var(--phone-w) + var(--gutter));
+  top: var(--stage-top);
+  right: var(--margin);
+  height: var(--stage-h);
+  filter: drop-shadow(8px 8px 0 var(--shadow));
+}
+.window-body {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  background: var(--plate);
+  clip-path: var(--vox2);
+}
+.titlebar { display: flex; align-items: center; gap: 14px; padding: 0 20px; background: var(--surface); box-shadow: inset 0 -4px 0 var(--lip); font: 500 18px/1 var(--mono); color: var(--dim); }
+.titlebar-title { flex: 1; }
+.titlebar-box { width: 14px; height: 14px; border: 3px solid var(--faint); }
+
+.ide { display: grid; grid-template-columns: 236px 1fr; min-height: 0; }
+.files { padding: 22px 0; background: var(--plate); font-size: 18px; color: var(--dim); }
+.files p { padding: 4px 22px; }
+.files .is-open { background: var(--surface); color: var(--text); }
+.files .indent { padding-left: 46px; }
+.main { display: grid; grid-template-rows: 1fr 408px; min-width: 0; position: relative; }
+.editor { position: relative; background: var(--field); padding: 22px 0; font-size: 19px; line-height: 31px; overflow: hidden; }
+.code-line { display: flex; white-space: pre; }
+.ln { width: 64px; padding-right: 20px; text-align: right; color: #4c5361; flex: none; }
+.k { color: #9c9de9; } .s { color: #7acfbd; } .f { color: #e8ad44; } .c { color: var(--faint); }
+
+.terminal { background: var(--socket); display: flex; flex-direction: column; min-height: 0; box-shadow: inset 0 4px 0 var(--lip); }
+.terminal-head { padding: 14px 24px 0; font: 600 17px/1 var(--pixel); color: var(--faint); }
+.terminal pre { margin: 0; padding: 12px 24px; font: 400 22px/36px var(--mono); white-space: pre; }
+.term-prompt { color: var(--focus); }
+.term-cmd { font-weight: 600; }
+.term-dim { color: var(--faint); }
+.term-ok { color: var(--ok); }
+.cursor { display: inline-block; width: 0.6em; height: 1.1em; vertical-align: -0.2em; background: currentColor; }
+
+.palette {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  width: 660px;
+  margin-left: -330px;
+  padding: 10px;
+  background: var(--float-top);
+  clip-path: var(--vox2);
+  font-size: 19px;
+  z-index: 2;
+}
+.palette-wrap { position: absolute; inset: 0; filter: drop-shadow(6px 6px 0 var(--shadow)); pointer-events: none; z-index: 2; }
+.palette-input { padding: 10px 14px; background: var(--field); clip-path: var(--vox); margin-bottom: 8px; color: var(--text); }
+.palette-item { padding: 8px 14px; color: var(--dim); display: flex; justify-content: space-between; }
+.palette-item.is-on { background: var(--alpha-shade); color: var(--text); clip-path: var(--vox); }
+.palette-keys { color: var(--faint); }
+
+/* Sign-in view for the 2FA scene. */
+.signin { background: var(--field); display: flex; align-items: center; justify-content: center; }
+.signin-box { width: 720px; display: grid; gap: 22px; padding: 44px; background: var(--surface); clip-path: var(--vox2); }
+.signin-title { font: 600 44px/1.2 var(--pixel); }
+.signin-sub { color: var(--dim); font-size: 20px; }
+.otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 8px; }
+.otp-cell { height: 84px; display: flex; align-items: center; justify-content: center; background: var(--field); clip-path: var(--vox); font: 600 40px/1 var(--mono); box-shadow: inset 0 0 0 3px var(--line); }
+.otp-cell.is-active { box-shadow: inset 0 0 0 3px var(--focus); }
+.signed-in { display: flex; align-items: center; gap: 12px; color: var(--ok); font: 600 22px/1 var(--mono); height: 32px; }
+.signed-in svg { width: 32px; height: 32px; }
+
+/* The pixel wipe between scenes sits over everything. */
+.wipe { position: absolute; inset: 0; z-index: 10; }

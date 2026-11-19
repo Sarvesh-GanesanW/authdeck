@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AuthDeck promo</title>
+<link rel="stylesheet" href="scene.css">
+<script src="scene.js" defer></script>
+</head>
+<body>
+<!-- The AuthDeck mark from site/src/index.html, split so the cap can sink into its shadow. -->
+<svg xmlns="http://www.w3.org/2000/svg" hidden>
+  <symbol id="mark-shadow" viewBox="0 0 17 18">
+    <path fill="#121418" d="M16 2h1v15h-1zM2 17h14v1H2zM15 16h1v1h-1z"/>
+  </symbol>
+  <symbol id="mark-cap" viewBox="0 0 17 18">
+    <path fill="#a87425" d="M0 13h1v1H0zM15 13h1v1h-1zM0 14h16v2H0zM1 16h14v1H1z"/>
+    <path fill="#f6c976" d="M1 0h14v1H1zM0 1h1v12H0z"/>
+    <path fill="#e8ad44" d="M1 1h15v12H1zM1 13h14v1H1z"/>
+    <path fill="#5c3b0c" d="M3 4h2v1H3zM4 5h2v1H4zM5 6h2v1H5zM4 7h2v1H4zM3 8h2v1H3zM7 8h5v1H7z"/>
+    <path fill="#62e3a0" d="M11 3h2v2h-2z"/>
+  </symbol>
+</svg>
+<div id="icon-sprite"></div>
+
+<!-- 1. Intro -->
+<section class="scene card" id="intro">
+  <svg class="mark mark-big" data-mark viewBox="0 0 17 18" aria-hidden="true"><use class="mark-shadow" href="#mark-shadow"/><g class="mark-cap"><use href="#mark-cap"/></g></svg>
+  <div class="lockup" id="intro-lockup">
+    <svg class="mark mark-lockup" viewBox="0 0 17 18" aria-hidden="true"><use href="#mark-shadow"/><use href="#mark-cap"/></svg>
+    <span class="wordmark">AuthDeck</span>
+  </div>
+  <h1 class="headline" id="intro-headline">A deck of keys for the computer you code on</h1>
+</section>
+
+<!-- 2 to 4. Phone and computer -->
+<section class="scene" id="stage">
+  <p class="caption" id="caption"></p>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="status"><span>9:41</span><svg><use href="#i-wifi"/></svg></div>
+
+        <div id="phone-deck">
+          <div class="tabs"><span class="tab is-on">Code</span><span class="tab">Git</span><span class="tab">Run</span><span class="tab">Apps</span></div>
+          <div class="deck">
+            <div class="key" data-tone="alpha" id="key-palette">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-square-chevron-right"/></svg><span class="key-label">Command palette</span></span><span class="key-light"></span><span class="key-flash"></span><span class="key-sub">⇧⌘P</span></span>
+            </div>
+            <div class="key" data-tone="alpha" id="key-tests">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-play"/></svg><span class="key-label">Run tests</span></span><span class="key-march"></span><span class="key-light"></span><span class="key-flash"></span><span class="key-sub">npm test</span></span>
+            </div>
+            <div class="key key-code" data-tone="c">
+              <span class="key-face"><span class="key-top"><span class="key-label">GitHub</span><span class="key-digits">482 913</span><span class="key-timer"><span data-timer="github"></span></span></span><span class="key-light"></span><span class="key-sub">2FA</span></span>
+            </div>
+            <div class="key" data-tone="b">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-bug"/></svg><span class="key-label">Start debugging</span></span><span class="key-light"></span><span class="key-sub">F5</span></span>
+            </div>
+            <div class="key" data-tone="alpha">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-git-merge"/></svg><span class="key-label">Pull</span></span><span class="key-light"></span><span class="key-sub">git pull</span></span>
+            </div>
+            <div class="key" data-tone="alpha">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-server"/></svg><span class="key-label">Dev server</span></span><span class="key-light"></span><span class="key-sub">env run</span></span>
+            </div>
+            <div class="key" data-tone="alpha">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-external-link"/></svg><span class="key-label">Open docs</span></span><span class="key-light"></span><span class="key-sub">Link</span></span>
+            </div>
+            <div class="key" data-tone="a">
+              <span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-stop"/></svg><span class="key-label">Stop</span></span><span class="key-light"></span><span class="key-sub">⇧F5</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="codes" id="phone-codes">
+          <p class="codes-title">Codes</p>
+          <div class="codes-list">
+            <div class="vault-row" id="row-github"><span class="vault-who"><span class="vault-name">GitHub</span><span class="vault-user">you@example.com</span></span><span class="vault-code">482 913</span><span class="vault-timer"><span data-timer="github"></span></span></div>
+            <div class="vault-row"><span class="vault-who"><span class="vault-name">Cloud console</span><span class="vault-user">admin</span></span><span class="vault-code">507 266</span><span class="vault-timer"><span data-timer="cloud"></span></span></div>
+            <div class="vault-row"><span class="vault-who"><span class="vault-name">Steam</span><span class="vault-user">Steam Guard</span></span><span class="vault-code">5WG8K</span><span class="vault-timer"><span data-timer="steam"></span></span></div>
+            <div class="vault-row"><span class="vault-who"><span class="vault-name">AWS</span><span class="vault-user">root</span></span><span class="vault-code">139 804</span><span class="vault-timer"><span data-timer="aws"></span></span></div>
+          </div>
+          <span class="btn btn-quiet codes-add"><span class="btn-face"><svg><use href="#i-plus"/></svg>Add account</span></span>
+        </div>
+
+        <div class="home-bar"></div>
+
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" id="sheet">
+          <p class="sheet-title">MacBook Pro wants web's .env</p>
+          <p class="sheet-sub">From npm run dev<br>Ends in 0:52 if you don't answer</p>
+          <div class="sheet-buttons">
+            <span class="btn btn-primary" id="sheet-allow"><span class="btn-face">Allow for 15 minutes</span></span>
+            <span class="sheet-row">
+              <span class="btn btn-quiet"><span class="btn-face">Allow once</span></span>
+              <span class="btn btn-quiet btn-danger"><span class="btn-face">Deny</span></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="window">
+    <div class="window-body">
+      <div class="titlebar"><span class="titlebar-title" id="window-title">web</span><span class="titlebar-box"></span><span class="titlebar-box"></span></div>
+
+      <div class="ide" id="ide">
+        <div class="files">
+          <p>src</p>
+          <p class="indent is-open">app.ts</p>
+          <p class="indent">server.ts</p>
+          <p class="indent">routes.ts</p>
+          <p>package.json</p>
+          <p>README.md</p>
+        </div>
+        <div class="main">
+          <div class="editor">
+<div class="code-line"><span class="ln">1</span><span><span class="k">import</span> { createServer } <span class="k">from</span> <span class="s">'./server'</span>;</span></div>
+<div class="code-line"><span class="ln">2</span><span> </span></div>
+<div class="code-line"><span class="ln">3</span><span><span class="k">const</span> port = <span class="f">Number</span>(process.env.PORT ?? <span class="s">5173</span>);</span></div>
+<div class="code-line"><span class="ln">4</span><span> </span></div>
+<div class="code-line"><span class="ln">5</span><span><span class="k">export async function</span> <span class="f">start</span>() {</span></div>
+<div class="code-line"><span class="ln">6</span><span>  <span class="k">const</span> server = <span class="k">await</span> <span class="f">createServer</span>();</span></div>
+<div class="code-line"><span class="ln">7</span><span>  server.<span class="f">listen</span>(port);</span></div>
+<div class="code-line"><span class="ln">8</span><span>  <span class="k">return</span> server;</span></div>
+<div class="code-line"><span class="ln">9</span><span>}</span></div>
+            <div class="palette-wrap" id="palette">
+              <div class="palette">
+                <div class="palette-input">&gt; <span class="cursor" id="palette-cursor"></span></div>
+                <div class="palette-item is-on"><span>Format document</span><span class="palette-keys">⌥⇧F</span></div>
+                <div class="palette-item"><span>Go to definition</span><span class="palette-keys">F12</span></div>
+                <div class="palette-item"><span>Toggle terminal</span><span class="palette-keys">⌃`</span></div>
+                <div class="palette-item"><span>Rename symbol</span><span class="palette-keys">F2</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="terminal">
+            <p class="terminal-head">Terminal</p>
+            <pre id="term"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="signin" id="signin">
+        <div class="signin-box">
+          <p class="signin-title">Sign in</p>
+          <p class="signin-sub">Enter the 6-digit code from your authenticator app.</p>
+          <div class="otp" id="otp"><span class="otp-cell"></span><span class="otp-cell"></span><span class="otp-cell"></span><span class="otp-cell"></span><span class="otp-cell"></span><span class="otp-cell"></span></div>
+          <p class="signed-in" id="signed-in"><svg><use href="#i-check"/></svg>Signed in</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tap" id="tap"><span class="tap-ring" id="tap-ring"></span><span class="tap-dot" id="tap-dot"></span></div>
+</section>
+
+<!-- 5. End -->
+<section class="scene card" id="end">
+  <div class="end-stack" id="end-facts">
+    <p class="end-line">Free. No account. Just your Wi-Fi.</p>
+    <p class="end-sub" id="end-systems">Windows, Mac, Linux and Android</p>
+  </div>
+  <div class="end-stack end-final" id="end-final">
+    <svg class="mark mark-end" data-mark viewBox="0 0 17 18" aria-hidden="true"><use class="mark-shadow" href="#mark-shadow"/><g class="mark-cap"><use href="#mark-cap"/></g></svg>
+    <span class="wordmark">AuthDeck</span>
+    <span class="end-url">authdeck.in</span>
+  </div>
+</section>
+
+<canvas class="wipe" id="wipe" width="1920" height="1080"></canvas>
+</body>
+</html>
