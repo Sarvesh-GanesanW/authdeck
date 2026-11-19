@@ -1,0 +1,47 @@
+{
+  "seed": "solo-fast",
+  "bounds": {
+    "maxSteps": 6,
+    "maxPuts": 1,
+    "maxRestores": 1,
+    "maxPhraseChanges": 1,
+    "maxThief": 1,
+    "maxPhraseThief": 1,
+    "maxComputer": 3,
+    "maxRFork": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "keepRestore",
+      "attempts": 8
+    },
+    {
+      "t": "restore"
+    },
+    {
+      "t": "writeKept",
+      "best": true
+    }
+  ],
+  "violation": {
+    "invariant": "S4",
+    "summary": "the restore onto D1 that the owner adopted lost R1#0 to a kept attempt onto Q3 the computer wrote in later"
+  }
+}

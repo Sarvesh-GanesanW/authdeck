@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" data-colorway="graphite">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AuthDeck</title>
+  <meta name="description" content="Turn a phone or tablet into a deck of keys for the computer you code on: shortcuts, commands, apps, two-factor codes and .env secrets, one tap each.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#22262E">
+  <meta property="og:title" content="AuthDeck">
+  <meta property="og:description" content="A deck of keys for the computer you code on. Shortcuts, commands, two-factor codes and .env secrets, one tap each.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{SITE_URL}}">
+  <meta property="og:image" content="{{SITE_URL}}img/og.png">
+  <link rel="canonical" href="{{SITE_URL}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/icon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preload" href="fonts/PixelifySans_600SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/IBMPlexMono_400Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <script src="colorway.js"></script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+{{ICON_SPRITE}}
+{{MARK_SPRITE}}
+<a class="skip" href="#main">Skip to the content</a>
+
+<header class="top">
+  <div class="top-row wrap">
+    <a class="brand" href="#" aria-label="AuthDeck, back to the top">
+      <svg class="brand-mark" viewBox="0 0 17 18" shape-rendering="crispEdges" aria-hidden="true"><use href="#authdeck-mark"/></svg>
+      <span class="brand-name">AuthDeck</span>
+    </a>
+    <nav class="top-nav" aria-label="Sections">
+      <a href="#keys">Keys</a>
+      <a href="#codes">2FA codes</a>
+      <a href="#env">Env sets</a>
+      <a href="#security">Security</a>
+    </nav>
+    <div class="colorways" role="radiogroup" aria-label="Page colours">
+      <button type="button" role="radio" class="swatch" data-set-colorway="graphite" aria-checked="true" title="Graphite"><span class="swatch-face"></span><span class="sr">Graphite</span></button>
+      <button type="button" role="radio" class="swatch" data-set-colorway="paper" aria-checked="false" title="Paper"><span class="swatch-face"></span><span class="sr">Paper</span></button>
+      <button type="button" role="radio" class="swatch" data-set-colorway="tide" aria-checked="false" title="Tide"><span class="swatch-face"></span><span class="sr">Tide</span></button>
+    </div>
+    <a class="btn btn-primary btn-small" href="#download"><span class="btn-face">Download</span></a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title">A deck of keys for the computer you code on</h1>
+      <p class="lead">Tap a key on your phone or tablet, and your Mac, Windows or Linux computer opens the app, presses the shortcut, runs the command or types the code. AuthDeck also keeps your two-factor codes and your projects' <code>.env</code> secrets on the device in your hand.</p>
+      <div class="hero-foot">
+        <div class="hero-actions">
+          <a class="btn btn-primary" id="primary-download" href="#download"><span class="btn-face"><svg aria-hidden="true"><use href="#i-download"/></svg><span id="primary-label">Download AuthDeck</span></span></a>
+          <a class="text-link" id="primary-other" href="#download">Other systems and the phone app</a>
+        </div>
+        <p class="hero-note">Free, with no account. Version {{VERSION}}.</p>
+      </div>
+    </div>
+
+    <div class="hero-deck plate">
+      <div class="deck" id="deck" aria-label="A sample deck. Tap a key to see what your computer would do.">
+        <button type="button" class="key" data-tone="alpha" data-act="press" data-title="Command palette" data-detail="Pressed ⇧⌘P in VS Code">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-square-chevron-right"/></svg><span class="key-label">Command palette</span><span class="key-light"></span></span><span class="key-sub">⇧⌘P</span></span>
+        </button>
+        <button type="button" class="key" data-tone="alpha" data-act="run" data-ms="1600" data-title="Tests" data-detail="npm test" data-done="Finished in 1.6 s">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-play"/></svg><span class="key-label">Run tests</span><span class="key-light"></span></span><span class="key-sub">npm test</span></span>
+        </button>
+        <button type="button" class="key key-code" data-tone="c" data-act="code" data-account="GitHub" data-digits="6">
+          <span class="key-face"><span class="key-top"><span class="key-label">GitHub</span><span class="key-digits" aria-live="off">––– –––</span><span class="key-timer" aria-hidden="true"><span></span></span><span class="key-light"></span></span><span class="key-sub">2FA</span></span>
+        </button>
+        <button type="button" class="key" data-tone="b" data-act="press" data-title="Start debugging" data-detail="Pressed F5 in VS Code">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-bug"/></svg><span class="key-label">Start debugging</span><span class="key-light"></span></span><span class="key-sub">F5</span></span>
+        </button>
+
+        <button type="button" class="key" data-tone="alpha" data-act="run" data-ms="900" data-title="Git pull" data-detail="git pull" data-done="Finished in 0.9 s">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-git-merge"/></svg><span class="key-label">Pull</span><span class="key-light"></span></span><span class="key-sub">git pull</span></span>
+        </button>
+        <button type="button" class="key" data-tone="alpha" data-act="env" data-ms="1400" data-title="Dev server" data-detail="authdeck env run -- npm run dev" data-done="Running">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-server"/></svg><span class="key-label">Dev server</span><span class="key-light"></span></span><span class="key-sub">env run</span></span>
+        </button>
+        <button type="button" class="key" data-tone="alpha" data-act="press" data-title="Docs" data-detail="Opened the link in your browser">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-external-link"/></svg><span class="key-label">Open docs</span><span class="key-light"></span></span><span class="key-sub">Link</span></span>
+        </button>
+        <button type="button" class="key" data-tone="a" data-act="press" data-title="Stop" data-detail="Pressed ⇧F5 in VS Code">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-stop"/></svg><span class="key-label">Stop</span><span class="key-light"></span></span><span class="key-sub">⇧F5</span></span>
+        </button>
+
+        <button type="button" class="key key-extra" data-tone="alpha" data-act="press" data-title="Format document" data-detail="Pressed ⌥⇧F in VS Code">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-text-align-left"/></svg><span class="key-label">Format document</span><span class="key-light"></span></span><span class="key-sub">⌥⇧F</span></span>
+        </button>
+        <button type="button" class="key key-code key-extra" data-tone="mod" data-act="code" data-account="AWS" data-digits="6">
+          <span class="key-face"><span class="key-top"><span class="key-label">AWS</span><span class="key-digits" aria-live="off">––– –––</span><span class="key-timer" aria-hidden="true"><span></span></span><span class="key-light"></span></span><span class="key-sub">2FA</span></span>
+        </button>
+        <button type="button" class="key key-extra" data-tone="alpha" data-act="press" data-title="Signature" data-detail="Typed 42 characters">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-text-cursor-input"/></svg><span class="key-label">Signature</span><span class="key-light"></span></span><span class="key-sub">Snippet</span></span>
+        </button>
+        <button type="button" class="key key-extra" data-tone="alpha" data-act="fail" data-ms="1200" data-title="Lint" data-detail="npm run lint" data-done="Exit code 1">
+          <span class="key-face"><span class="key-top"><svg class="key-icon" aria-hidden="true"><use href="#i-check"/></svg><span class="key-label">Lint</span><span class="key-light"></span></span><span class="key-sub">npm run lint</span></span>
+        </button>
+      </div>
+
+      <div class="activity" aria-labelledby="activity-title">
+        <p class="activity-title" id="activity-title">On your computer</p>
+        <ol class="activity-list" id="activity"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="keys" aria-labelledby="keys-title">
+    <div class="wrap split">
+      <div class="split-text">
+        <h2 id="keys-title">One tap for the things you do all day</h2>
+        <p>You start with four pages, Code, Git, Run and Apps, set up for VS Code on your system. Tap Edit to move keys around, change what they do or add your own. Long-press a key for its menu.</p>
+        <ul class="does">
+          <li><svg aria-hidden="true"><use href="#i-monitor"/></svg><span>Open an app. The picker lists what's installed on your computer, icons included.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-keyboard"/></svg><span>Press a shortcut, after bringing a chosen app to the front if you like.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-terminal"/></svg><span>Run a command in a new terminal window, or quietly in the background with its output and exit code on the key.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-text-cursor-input"/></svg><span>Type a snippet of text.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-link"/></svg><span>Open a link, a file or a folder.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-list-box"/></svg><span>Do several of these in a row.</span></li>
+          <li><svg aria-hidden="true"><use href="#i-reload"/></svg><span>Switch pages on its own when you change apps on your computer.</span></li>
+        </ul>
+        <p class="aside">Three colour schemes come with it: Graphite, Paper and Tide. The squares at the top of this page switch between them.</p>
+      </div>
+      <figure class="shot">
+        <div class="shot-frame"><img src="img/tablet-deck.png" width="965" height="1400" alt="The Code page of AuthDeck on a tablet: keys for the command palette, quick open, find in files, debugging and app launchers." loading="lazy"></div>
+        <figcaption>The Code page on a tablet.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="band band-sunk" id="codes" aria-labelledby="codes-title">
+    <div class="wrap split split-flip">
+      <div class="split-text">
+        <h2 id="codes-title">Two-factor codes that type themselves</h2>
+        <p>Your codes are made on your phone or tablet, with no network needed. Put one on the deck and tap it: the computer types the digits into whatever field you're in.</p>
+        <ul class="points">
+          <li>Works with most sites (TOTP), counter codes (HOTP) and Steam Guard.</li>
+          <li>Add an account by scanning its QR code, typing its key, or importing from Google Authenticator's Transfer accounts code.</li>
+          <li>The computer gets only the digits, only when you tap. It keeps an encrypted backup of your vault that it can't read.</li>
+          <li>A 12-word recovery phrase brings your codes back on a new phone.</li>
+          <li>Lock the app with Face ID, your fingerprint or your passcode.</li>
+        </ul>
+      </div>
+      <div class="vault" aria-label="Sample accounts with live codes">
+        <div class="panel vault-panel">
+          <p class="panel-title">Codes</p>
+          <ul class="vault-list">
+            <li class="vault-row" data-account="GitHub" data-digits="6"><span class="vault-who"><span class="vault-name">GitHub</span><span class="vault-user">you@example.com</span></span><span class="vault-code">––– –––</span><span class="vault-timer" aria-hidden="true"><span></span></span></li>
+            <li class="vault-row" data-account="Cloud console" data-digits="6"><span class="vault-who"><span class="vault-name">Cloud console</span><span class="vault-user">admin</span></span><span class="vault-code">––– –––</span><span class="vault-timer" aria-hidden="true"><span></span></span></li>
+            <li class="vault-row" data-account="Steam" data-steam="true"><span class="vault-who"><span class="vault-name">Steam</span><span class="vault-user">Steam Guard</span></span><span class="vault-code">–––––</span><span class="vault-timer" aria-hidden="true"><span></span></span></li>
+          </ul>
+        </div>
+        <p class="vault-typed" id="vault-typed">Tap a code key, and only these digits reach the computer.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="env" aria-labelledby="env-title">
+    <div class="wrap">
+      <div class="env-head">
+        <h2 id="env-title">Your <code>.env</code> secrets, in the repo and released from your phone</h2>
+        <p>An env set keeps a project's secrets in its own git repo, in one file. Names are readable, values are encrypted so only your team's phones and tablets can open them, and every line is signed by the device that wrote it.</p>
+      </div>
+      <div class="env-show" id="env-show">
+        <div class="plate term" aria-label="A terminal running authdeck env run">
+          <pre><code><span class="term-line" data-play="command"><span class="term-prompt">~/code/web</span> <span class="term-cmd">authdeck env run -- npm run dev</span>
+</span><span class="term-line" data-play="check"><span class="term-dim">web: 12 variables, signatures check out (rev 7, epoch 2)</span>
+</span><span class="term-line" data-play="ask"><span class="term-dim">Asking Pixel 8 to release them… waiting 0:03</span>
+</span><span class="term-line" data-play="allowed"><span class="term-ok">Pixel 8 allowed web for 15 minutes (until 11:58).</span>
+</span><span class="term-line" data-play="output">
+<span class="term-dim">&gt; web@2.3.0 dev</span>
+<span class="term-dim">&gt; vite</span>
+</span><span class="term-line" data-play="server">
+  Local: http://localhost:5173/</span></code></pre>
+        </div>
+        <div class="panel sheet" id="sheet" aria-label="The request on the phone">
+          <p class="sheet-title">MacBook Pro wants web's .env</p>
+          <p class="sheet-sub">From npm run dev<br>Ends in 0:52 if you don't answer</p>
+          <div class="sheet-buttons">
+            <span class="btn btn-primary btn-wide" id="sheet-allow" aria-hidden="true"><span class="btn-face">Allow for 15 minutes</span></span>
+            <span class="sheet-row">
+              <span class="btn btn-quiet" aria-hidden="true"><span class="btn-face">Allow once</span></span>
+              <span class="btn btn-quiet btn-danger" aria-hidden="true"><span class="btn-face">Deny</span></span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <ul class="env-points">
+        <li><strong>Values go into one process.</strong> <code>authdeck env run</code> asks your phone, and nothing is written to disk. Allow for 15 minutes lets the next runs on that computer through without a tap.</li>
+        <li><strong>A lost laptop gives up only ciphertext.</strong> The computer never keeps a set's key, so all it holds is the encrypted file and any <code>.env</code> you pulled onto it.</li>
+        <li><strong>Teammates join from the repo.</strong> They ask with a request file, and before you approve, you each read out six key words and pick the other's from three choices.</li>
+        <li><strong>Removing someone makes a new key</strong> and lists the variables to rotate. The repo carries the file; there's no server.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band-sunk" id="setup" aria-labelledby="setup-title">
+    <div class="wrap">
+      <h2 id="setup-title">Set up in three steps</h2>
+      <ol class="steps">
+        <li>
+          <span class="step-n" aria-hidden="true">1</span>
+          <h3>Install the agent</h3>
+          <p>It sits in the menu bar or tray and does what your keys ask. macOS, Windows and Linux.</p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">2</span>
+          <h3>Install the app</h3>
+          <p>Android today. iPhone and iPad aren't on the App Store yet.</p>
+        </li>
+        <li>
+          <span class="step-n" aria-hidden="true">3</span>
+          <h3>Pair them</h3>
+          <p>The agent shows a QR code and a six-digit PIN. Scan the code, or pick your computer and type the PIN. Both need to be on the same Wi-Fi.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" id="security" aria-labelledby="security-title">
+    <div class="wrap split">
+      <div class="split-text">
+        <h2 id="security-title">Your devices, your network, no account</h2>
+        <p>The app talks straight to the agent over your own Wi-Fi. The link is encrypted, and both ends prove who they are with keys exchanged when you pair. Each PIN attempt is one guess, and three wrong PINs bring a new PIN and a pause.</p>
+        <p>A paired device can run commands as you, so pair only devices you own, and unpair a lost one from the agent's window.</p>
+      </div>
+      <div class="split-text limits">
+        <h3>What it doesn't protect against</h3>
+        <p>Other programs running as you on the same computer can change the agent's settings and paired devices. Keep that computer free of malware.</p>
+        <p>The builds aren't signed with paid certificates yet, so your system asks for an extra click the first time you open them. The steps are under the downloads.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-sunk" id="download" aria-labelledby="download-title">
+    <div class="wrap">
+      <h2 id="download-title">Download AuthDeck {{VERSION}}</h2>
+      <p class="download-intro">You need both: the agent on your computer, and the app on your phone or tablet.</p>
+
+      <h3 class="table-title" id="agent-title">AuthDeck Agent, for your computer</h3>
+      <div class="table-wrap">
+        <table class="downloads" aria-labelledby="agent-title">
+          <colgroup><col class="col-system"><col class="col-file"><col class="col-hash"><col class="col-get"></colgroup>
+          <thead><tr><th scope="col">System</th><th scope="col">File</th><th scope="col">SHA-256</th><th scope="col"><span class="sr">Download</span></th></tr></thead>
+          <tbody>{{AGENT_ROWS}}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="table-title" id="app-title">AuthDeck, for your phone or tablet</h3>
+      <div class="table-wrap">
+        <table class="downloads" aria-labelledby="app-title">
+          <colgroup><col class="col-system"><col class="col-file"><col class="col-hash"><col class="col-get"></colgroup>
+          <thead><tr><th scope="col">System</th><th scope="col">File</th><th scope="col">SHA-256</th><th scope="col"><span class="sr">Download</span></th></tr></thead>
+          <tbody>{{APP_ROWS}}
+          </tbody>
+        </table>
+      </div>
+      <p class="sums">Click a SHA-256 to copy it, or get every checksum in <a href="downloads/SHA256SUMS">SHA256SUMS</a>.</p>
+
+      <h3 class="table-title">The first time you open it</h3>
+      <dl class="first-run">
+        <div><dt>macOS</dt><dd>Open the app once, then go to System Settings › Privacy &amp; Security and click Open Anyway. Turn on AuthDeck Agent under Accessibility when macOS asks: shortcuts and typing need it.</dd></div>
+        <div><dt>Windows</dt><dd>When SmartScreen stops it, click More info, then Run anyway. When the firewall asks, allow it on private networks.</dd></div>
+        <div><dt>Linux</dt><dd>Shortcuts and typing need <code>xdotool</code> on X11, or <code>wtype</code> or <code>ydotool</code> on Wayland.</dd></div>
+        <div><dt>Android</dt><dd>Open the APK on the device. Android asks you to allow installs from your browser first.</dd></div>
+        <div><dt>iPhone and iPad</dt><dd>Not on the App Store yet. The unsigned IPA is for sideloading tools that sign it with your own Apple ID.</dd></div>
+      </dl>
+    </div>
+  </section>
+</main>
+
+{{FOOTER}}
+
+<script type="application/json" id="downloads-data">{{PRIMARY_DOWNLOADS}}</script>
+</body>
+</html>

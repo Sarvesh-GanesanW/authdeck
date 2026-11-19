@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["AuthdeckSocketModule"]
+  },
+  "android": {
+    "modules": ["dev.authdeck.socket.AuthdeckSocketModule"]
+  }
+}

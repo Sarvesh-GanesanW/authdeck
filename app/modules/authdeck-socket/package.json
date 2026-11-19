@@ -1,0 +1,10 @@
+{
+  "name": "authdeck-socket",
+  "version": "0.1.0",
+  "license": "FSL-1.1-MIT",
+  "description": "Raw TCP sockets with read back-pressure, for AuthDeck's link to AuthDeck Agent",
+  "main": "index.ts",
+  "author": "AuthDeck",
+  "homepage": "https://github.com/Sarvesh-GanesanW/authdeck",
+  "private": true
+}

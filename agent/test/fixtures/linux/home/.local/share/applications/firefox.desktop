@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Firefox (user override)
+Exec=firefox --private-window %u
+Icon=/opt/firefox/browser/chrome/icons/default/default128.png
+Type=Application

@@ -1,0 +1,38 @@
+{
+  "name": "authdeck-agent",
+  "version": "0.4.1",
+  "license": "FSL-1.1-MIT",
+  "description": "AuthDeck desktop agent: lists installed apps and runs the actions sent by the AuthDeck tablet app.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "authdeck-agent": "dist/authdeck-agent.cjs",
+    "authdeck": "dist/authdeck.cjs"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --import ./test/setup/multiDevice.ts --test --test-reporter=spec \"test/**/*.test.ts\"",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "@scure/bip39": "2.4.0",
+    "qrcode-terminal": "^0.12.0",
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/ws": "^8.18.2",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

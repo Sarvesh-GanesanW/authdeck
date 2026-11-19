@@ -1,0 +1,58 @@
+{
+  "seed": "solo-random",
+  "bounds": {
+    "maxSteps": 8,
+    "maxPuts": 2,
+    "maxRestores": 2,
+    "maxPhraseChanges": 1,
+    "maxThief": 3,
+    "maxPhraseThief": 2,
+    "maxComputer": 4,
+    "maxRFork": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "keepRestore"
+    },
+    {
+      "t": "restore"
+    },
+    {
+      "t": "rename"
+    },
+    {
+      "t": "writeKept"
+    },
+    {
+      "t": "keepRestore"
+    },
+    {
+      "t": "phrase"
+    },
+    {
+      "t": "writeKept",
+      "best": true
+    }
+  ],
+  "violation": {
+    "invariant": "S5",
+    "summary": "the owner's phrase change R1#2 lost to a restore attempt the owner signed before the change, kept by the computer and written over it (a device.add), even after the owner's phone synced and could repair its ack"
+  }
+}

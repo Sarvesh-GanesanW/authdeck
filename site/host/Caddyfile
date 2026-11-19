@@ -1,0 +1,45 @@
+# Serves ~/authdeck-site/www on 127.0.0.1 only; cloudflared publishes it on https://authdeck.in
+# through Cloudflare Tunnel. No admin API and no saved config, so it can't clash with another Caddy.
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+# Any host name: the tunnel passes the public one (authdeck.in or www.authdeck.in) through.
+http://:8735 {
+	bind 127.0.0.1
+	# One address for the site, so links and previews agree.
+	@www host www.authdeck.in
+	redir @www https://authdeck.in{uri} permanent
+	root * {$HOME}/authdeck-site/www
+	encode zstd gzip
+	file_server
+
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+	@assets path /fonts/* /img/*
+	header @assets Cache-Control "public, max-age=604800"
+	# no-transform keeps Cloudflare from injecting its analytics script, which the CSP would block.
+	@html path / /index.html /privacy/ /privacy/index.html /downloads/ /downloads/index.html
+	header @html Cache-Control "no-cache, no-transform"
+	@code path /style.css /site.js /colorway.js
+	header @code Cache-Control "no-cache"
+	# Browsers ask for these on their own; a day keeps a new icon from taking a week to show.
+	@favicon path /favicon.ico
+	header @favicon {
+		Cache-Control "public, max-age=86400"
+		Content-Type image/x-icon
+	}
+	@manifest path /site.webmanifest
+	header @manifest {
+		Cache-Control "public, max-age=86400"
+		Content-Type application/manifest+json
+	}
+}

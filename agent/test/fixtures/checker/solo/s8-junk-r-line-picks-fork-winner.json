@@ -1,0 +1,48 @@
+{
+  "seed": "solo-fast",
+  "bounds": {
+    "maxSteps": 6,
+    "maxPuts": 1,
+    "maxRestores": 1,
+    "maxPhraseChanges": 1,
+    "maxThief": 1,
+    "maxPhraseThief": 1,
+    "maxComputer": 1,
+    "maxRFork": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "phrase"
+    },
+    {
+      "t": "rFork",
+      "kind": "phrase",
+      "delivery": "proof"
+    },
+    {
+      "t": "junkLine",
+      "label": "R1"
+    }
+  ],
+  "violation": {
+    "invariant": "S8",
+    "summary": "F's copy says the current phrase is RZ, the folder R2"
+  }
+}

@@ -1,0 +1,10 @@
+// S8: the agent refuses a restore with the current phrase R2: Entry 1 was refused: its author signed two different entries at seq 0, so this computer takes no more changes from it.
+import { ModelContext } from '../../../model/context';
+import { checkSolo, runSolo } from '../../../model/solo';
+import { vaultFeatures } from '../../../../src/vault/features';
+vaultFeatures.multiDevice = false;
+const fixture = {"seed":"solo-random","bounds":{"maxSteps":10,"maxPuts":2,"maxRestores":2,"maxPhraseChanges":1,"maxThief":3,"maxPhraseThief":2,"maxComputer":2,"maxRFork":1,"thief":true,"phraseThief":true,"computer":true,"thiefKinds":["put","delete","rename","add","rotate","recoverySet","remove","garbage","badSeal","fork","forkProof","truncate"]},"ops":[{"t":"phrase"},{"t":"rFork","kind":"restore","delivery":"direct","grind":true,"old":true,"stale":true},{"t":"keepRestore"},{"t":"restore"},{"t":"writeKept"}]};
+const world = runSolo(new ModelContext(fixture.seed), fixture.bounds as never, fixture.ops as never);
+if (!world) throw new Error('the scenario no longer builds');
+const hit = checkSolo(world).filter((v) => v.invariant === "S8");
+console.log(hit.length > 0 ? `FAIL ${hit.map((v) => v.summary).join('; ')}` : 'PASS (no longer violated)');

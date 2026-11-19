@@ -1,0 +1,136 @@
+{
+  "expo": {
+    "name": "AuthDeck",
+    "slug": "authdeck",
+    "scheme": "authdeck",
+    "version": "0.4.1",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#22262E",
+    "ios": {
+      "supportsTablet": true,
+      "requireFullScreen": false,
+      "bundleIdentifier": "dev.authdeck.app",
+      "buildNumber": "8",
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "AuthDeck uses the camera only to scan QR codes: the pairing code shown by AuthDeck Agent on your computer, and the 2FA setup codes sites show.",
+        "NSLocalNetworkUsageDescription": "AuthDeck connects to the AuthDeck agent on your computer over your local network so your keys can run actions there.",
+        "NSFaceIDUsageDescription": "AuthDeck uses Face ID to unlock the codes saved in its authenticator.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "CADisableMinimumFrameDurationOnPhone": true
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1", "3B52.1"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "package": "dev.authdeck.app",
+      "versionCode": 8,
+      "adaptiveIcon": {
+        "backgroundColor": "#22262E",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WAKE_LOCK"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "AuthDeck",
+      "backgroundColor": "#22262E"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "targetSdkVersion": 36
+          }
+        }
+      ],
+      "expo-sharing",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "AuthDeck uses Face ID to unlock the codes saved in its authenticator.",
+          "configureAndroidBackup": true
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "AuthDeck uses Face ID to unlock the codes saved in its authenticator."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AuthDeck uses the camera only to scan QR codes: the pairing code shown by AuthDeck Agent on your computer, and the 2FA setup codes sites show.",
+          "microphonePermission": "AuthDeck never records audio. The camera is used only to scan QR codes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#22262E",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#22262E"
+          }
+        }
+      ],
+      "./plugins/withReleaseSigning",
+      "./plugins/withHighRefreshRate",
+      "./plugins/withAsyncStorageSize"
+    ]
+  }
+}

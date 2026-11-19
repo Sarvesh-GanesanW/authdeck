@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'">
+<title>AuthDeck Agent</title>
+<link rel="stylesheet" href="styles.css">
+<script src="renderer.js" defer></script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="titlebar">
+    <span class="logo c1 raised" aria-hidden="true"></span>
+    <h1>AuthDeck Agent</h1>
+    <span class="spacer"></span>
+    <div class="raised" id="back-slot" hidden>
+      <button class="vbtn compact c1" type="button" id="back">Done</button>
+    </div>
+    <div class="pill c1" role="status" id="status"><span class="lamp" id="status-lamp"></span><span id="status-text">Starting…</span></div>
+  </header>
+  <main class="view" id="view"></main>
+  <footer class="footer" id="footer"></footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "seed": "solo",
+  "bounds": {
+    "maxSteps": 5,
+    "maxPuts": 1,
+    "maxRestores": 1,
+    "maxPhraseChanges": 1,
+    "maxThief": 1,
+    "maxPhraseThief": 1,
+    "maxComputer": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "phrase"
+    },
+    {
+      "t": "put"
+    },
+    {
+      "t": "steal"
+    },
+    {
+      "t": "restore"
+    },
+    {
+      "t": "thief",
+      "kind": "truncate",
+      "basis": "stale",
+      "delivery": "direct"
+    }
+  ],
+  "violation": {
+    "invariant": "S4",
+    "summary": "account a1, applied in what R2 saw when restoring onto D1, is gone"
+  }
+}

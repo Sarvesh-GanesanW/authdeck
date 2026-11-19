@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=GNOME Only
+Exec=gnome-thing
+Type=Application
+OnlyShowIn=GNOME;Unity;

@@ -1,0 +1,54 @@
+{
+  "seed": "solo-random",
+  "bounds": {
+    "maxSteps": 6,
+    "maxPuts": 2,
+    "maxRestores": 2,
+    "maxPhraseChanges": 1,
+    "maxThief": 3,
+    "maxPhraseThief": 2,
+    "maxComputer": 3,
+    "maxRFork": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "keepRestore"
+    },
+    {
+      "t": "restore"
+    },
+    {
+      "t": "phrase"
+    },
+    {
+      "t": "rFork",
+      "kind": "retry",
+      "delivery": "proof"
+    },
+    {
+      "t": "writeKept",
+      "best": true
+    }
+  ],
+  "violation": {
+    "invariant": "S8",
+    "summary": "the agent refuses a restore with the current phrase R1: Entry 3 has seq 2, but the next entry of its device is 3. Read the vault again and retry."
+  }
+}

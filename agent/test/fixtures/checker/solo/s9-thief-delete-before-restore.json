@@ -1,0 +1,51 @@
+{
+  "seed": "solo-fast",
+  "bounds": {
+    "maxSteps": 6,
+    "maxPuts": 1,
+    "maxRestores": 1,
+    "maxPhraseChanges": 1,
+    "maxThief": 1,
+    "maxPhraseThief": 1,
+    "maxComputer": 1,
+    "maxRFork": 1,
+    "thief": true,
+    "phraseThief": true,
+    "computer": true,
+    "thiefKinds": [
+      "put",
+      "delete",
+      "rename",
+      "add",
+      "rotate",
+      "recoverySet",
+      "remove",
+      "garbage",
+      "badSeal",
+      "fork",
+      "forkProof",
+      "truncate"
+    ]
+  },
+  "ops": [
+    {
+      "t": "put"
+    },
+    {
+      "t": "steal"
+    },
+    {
+      "t": "thief",
+      "kind": "delete",
+      "basis": "stale",
+      "delivery": "agent"
+    },
+    {
+      "t": "restore"
+    }
+  ],
+  "violation": {
+    "invariant": "S9",
+    "summary": "account a1, deleted by the stolen phone (F#3, applied) before the restore onto D1, is gone and its delete is not offered for review"
+  }
+}

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Kate
+Exec=kate -b %U
+Icon=kate
+Type=Application
+Terminal=false

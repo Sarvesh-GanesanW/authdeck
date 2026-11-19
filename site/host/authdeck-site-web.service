@@ -1,0 +1,14 @@
+# The website's files, served by Caddy on 127.0.0.1:8735 for the Cloudflare Tunnel.
+# Installed by site/host/start.sh as a systemd user service; CADDY is replaced with Caddy's path.
+[Unit]
+Description=AuthDeck website files (Caddy on 127.0.0.1:8735)
+
+[Service]
+Environment=XDG_CONFIG_HOME=%h/.local/state/authdeck-site/caddy-config
+Environment=XDG_DATA_HOME=%h/.local/state/authdeck-site/caddy-data
+ExecStart=CADDY run --adapter caddyfile --config %h/authdeck-site/host/Caddyfile
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

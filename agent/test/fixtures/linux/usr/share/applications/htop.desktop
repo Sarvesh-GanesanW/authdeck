@@ -1,0 +1,6 @@
+# a comment line
+[Desktop Entry]
+Name=Htop\sMonitor
+Exec="/usr/bin/htop" --tree
+Terminal=true
+Type=Application

@@ -1,0 +1,14 @@
+#!/bin/sh
+# The authdeck command on macOS. /usr/local/bin/authdeck links here, inside AuthDeck Agent.app;
+# it starts the app in its CLI mode, which runs only the command bundled with it, so the computer
+# needs no Node.js. After `--` Chromium reads no switches: the arguments are the command's alone.
+self=$0
+while [ -L "$self" ]; do
+  target=$(readlink "$self")
+  case $target in
+    /*) self=$target ;;
+    *) self=$(dirname "$self")/$target ;;
+  esac
+done
+dir=$(cd "$(dirname "$self")" && pwd -P)
+exec "$dir/../../MacOS/AuthDeck Agent" --authdeck-cli -- "$@"

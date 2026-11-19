@@ -1,0 +1,17 @@
+# Publishes the website on https://authdeck.in through the Cloudflare Tunnel "authdeck-site".
+# cloudflared dials out to Cloudflare, so the machine needs no open ports. Installed by
+# site/host/start.sh as a systemd user service; CLOUDFLARED is replaced with cloudflared's path.
+# The token comes from tunnel.env (TUNNEL_TOKEN=...) so it never shows on a command line.
+[Unit]
+Description=AuthDeck website (Cloudflare Tunnel to authdeck.in)
+After=authdeck-site-web.service
+
+[Service]
+EnvironmentFile=%h/.config/authdeck-site/tunnel.env
+ExecStart=CLOUDFLARED tunnel run
+# cloudflared updates itself and exits so systemd starts the new version.
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
