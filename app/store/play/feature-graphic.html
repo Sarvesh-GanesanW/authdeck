@@ -1,0 +1,119 @@
+<!doctype html>
+<!--
+  Google Play feature graphic, 1024 x 500. Re-render from app/store/play with:
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --mute-audio --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=1024,500 --allow-file-access-from-files \
+    --screenshot=/tmp/fg.png "file://$PWD/feature-graphic.html"
+  then drop the alpha channel, which Play refuses: ffmpeg -y -i /tmp/fg.png -pix_fmt rgb24 feature-graphic.png
+  Colours, fonts, mark and icons come from the website (site/src) in its Graphite scheme.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AuthDeck feature graphic</title>
+<style>
+  @font-face { font-family: 'Pixelify'; src: url('../../../site/src/fonts/PixelifySans_600SemiBold.woff2') format('woff2'); font-weight: 600; }
+  @font-face { font-family: 'Plex'; src: url('../../../site/src/fonts/IBMPlexMono_400Regular.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Plex'; src: url('../../../site/src/fonts/IBMPlexMono_600SemiBold.woff2') format('woff2'); font-weight: 600; }
+
+  :root {
+    --v: 4px;
+    --vox: polygon(var(--v) 0, calc(100% - var(--v)) 0, calc(100% - var(--v)) var(--v), 100% var(--v), 100% calc(100% - var(--v)), calc(100% - var(--v)) calc(100% - var(--v)), calc(100% - var(--v)) 100%, var(--v) 100%, var(--v) calc(100% - var(--v)), 0 calc(100% - var(--v)), 0 var(--v), var(--v) var(--v));
+    --case: #22262e; --plate: #191c22; --socket: #14161b;
+    --text: #f0eadc; --dim: #a9b1bf; --ok: #62e3a0; --shadow: rgba(0, 0, 0, 0.32);
+  }
+  .key { --hi: #3a404c; --top: #2e333d; --shade: #272b33; --front: #1f2329; --legend: #f0eadc; --sub: #a9b1bf; }
+  [data-tone='alpha'] { --hi: #535c6e; --top: #434a58; --shade: #3a404c; --front: #2b3039; --legend: #f0eadc; --sub: #a9b1bf; }
+  [data-tone='mod'] { --hi: #3e4451; --top: #30353f; --shade: #2a2e37; --front: #1f2329; --legend: #cbd1db; --sub: #949dac; }
+  [data-tone='a'] { --hi: #f6c976; --top: #e8ad44; --shade: #d09833; --front: #a87425; --legend: #2a1c07; --sub: #1a1103; }
+  [data-tone='b'] { --hi: #7acfbd; --top: #5cb7a3; --shade: #4ca18e; --front: #3f8e7d; --legend: #0b231e; --sub: #04120e; }
+  [data-tone='c'] { --hi: #b8b9f5; --top: #9c9de9; --shade: #8a8bd9; --front: #7778c6; --legend: #16173a; --sub: #0b0c24; }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; background: var(--case); color: var(--text); }
+  body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 40px;
+    padding: 0 64px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 18px; margin-bottom: 30px; }
+  .brand svg { width: 68px; height: 72px; }
+  .brand-name { font: 600 46px/1 'Pixelify', monospace; letter-spacing: 0.01em; }
+  .line { font: 400 25px/1.4 'Plex', monospace; color: var(--text); max-width: 400px; }
+
+  /* The deck: a sunken plate holding a 3 x 2 grid of voxel keys, as on the website. */
+  .plate {
+    clip-path: var(--vox);
+    background: var(--plate);
+    padding: 16px;
+    box-shadow: inset 0 var(--v) 0 var(--socket);
+  }
+  .deck { display: grid; grid-template-columns: repeat(3, 132px); gap: 12px; }
+  .key { filter: drop-shadow(var(--v) var(--v) 0 var(--shadow)); }
+  .key-face {
+    --depth: 22px;
+    position: relative; isolation: isolate; display: block; height: 128px;
+    clip-path: var(--vox); background: var(--front); color: var(--legend);
+  }
+  .key-face::before { content: ''; position: absolute; inset: 0 0 var(--depth) 0; background: var(--shade); z-index: -1; }
+  .key-face::after {
+    content: ''; position: absolute; top: var(--v); left: var(--v); right: var(--v); bottom: calc(var(--depth) + var(--v));
+    background: var(--top); box-shadow: calc(-1 * var(--v)) calc(-1 * var(--v)) 0 0 var(--hi); z-index: -1;
+  }
+  .key-top {
+    position: absolute; top: var(--v); left: var(--v); right: var(--v); bottom: calc(var(--depth) + var(--v));
+    display: flex; flex-direction: column; justify-content: space-between; padding: 12px;
+  }
+  .key-icon { width: 26px; height: 26px; fill: currentColor; }
+  .key-label { font: 600 14px/1.25 'Plex', monospace; }
+  .key-digits { font: 600 22px/1 'Plex', monospace; letter-spacing: 0.02em; white-space: nowrap; }
+  .key-light { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: color-mix(in srgb, var(--legend) 22%, transparent); }
+  .is-ok .key-light { background: var(--ok); }
+  .key-sub {
+    position: absolute; left: 0; right: 0; bottom: 0; height: var(--depth);
+    display: flex; align-items: center; justify-content: center;
+    font: 400 12px/1 'Plex', monospace; color: var(--sub);
+  }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="authdeck-mark" viewBox="0 0 17 18">
+      <path fill="#121418" d="M16 2h1v15h-1zM2 17h14v1H2zM15 16h1v1h-1z"/>
+      <path fill="#a87425" d="M0 13h1v1H0zM15 13h1v1h-1zM0 14h16v2H0zM1 16h14v1H1z"/>
+      <path fill="#f6c976" d="M1 0h14v1H1zM0 1h1v12H0z"/>
+      <path fill="#e8ad44" d="M1 1h15v12H1zM1 13h14v1H1z"/>
+      <path fill="#5c3b0c" d="M3 4h2v1H3zM4 5h2v1H4zM5 6h2v1H5zM4 7h2v1H4zM3 8h2v1H3zM7 8h5v1H7z"/>
+      <path fill="#62e3a0" d="M11 3h2v2h-2z"/>
+    </symbol>
+    <symbol id="i-square-chevron-right" viewBox="0 0 24 24"><path d="M4 20h16v2H4zM4 2h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-5 7v2h-2v-2zm-2-2v2h-2V9zm-2-2v2H9V7zm2 6v2h-2v-2zm-2 2v2H9v-2z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M15 11h-2V9h2zm0 4h-2v-2h2zm-2 2h-2v-2h2zm0-8h-2V7h2zm-2-2H9V5h2zM9 21H7V3h2zm6-8h2v-2h-2zm-6 4h2v2H9z"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><path d="M6 7h4v2H6zm0 8h4v2H6zM2 5h2v14H2zm18 0h2v14h-2zM4 19h16v2H4zM4 3h16v2H4zm0 8h16v2H4z"/></symbol>
+    <symbol id="i-git-merge" viewBox="0 0 24 24"><path d="M4 2h4v2H4zm0 6h4v2H4zM2 4h2v4H2zm6 0h2v4H8zm8 10h4v2h-4zm0 6h4v2h-4zm-2-4h2v4h-2zm6 0h2v4h-2zM5 12h2v10H5zm7 0h2v2h-2zm-2-2h2v2h-2z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><path d="M11 18H3V16H11V18ZM23 15H21V18H17V16H19V13H21V11H11V8H13V9H23V15ZM3 16H1V8H3V16ZM17 16H15V15H13V16H11V13H17V16ZM9 14H5V10H9V14ZM11 8H3V6H11V8Z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><path d="M20 20H4V4H20V20ZM6 18H18V6H6V18ZM14 14H10V10H14V14Z"/></symbol>
+  </svg>
+
+  <div>
+    <div class="brand">
+      <svg viewBox="0 0 17 18" shape-rendering="crispEdges" aria-hidden="true"><use href="#authdeck-mark"/></svg>
+      <span class="brand-name">AuthDeck</span>
+    </div>
+    <p class="line">A deck of keys for the computer you code on</p>
+  </div>
+
+  <div class="plate">
+    <div class="deck">
+      <span class="key" data-tone="alpha"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-square-chevron-right"/></svg><span class="key-label">Command palette</span><span class="key-light"></span></span><span class="key-sub">⇧⌘P</span></span></span>
+      <span class="key is-ok" data-tone="c"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-play"/></svg><span class="key-label">Run tests</span><span class="key-light"></span></span><span class="key-sub">npm test</span></span></span>
+      <span class="key" data-tone="a"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-server"/></svg><span class="key-label">Dev server</span><span class="key-light"></span></span><span class="key-sub">env run</span></span></span>
+      <span class="key" data-tone="mod"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-git-merge"/></svg><span class="key-label">Pull</span><span class="key-light"></span></span><span class="key-sub">git pull</span></span></span>
+      <span class="key" data-tone="b"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-key"/></svg><span class="key-digits">482 913</span><span class="key-light"></span></span><span class="key-sub">GitHub</span></span></span>
+      <span class="key" data-tone="alpha"><span class="key-face"><span class="key-top"><svg class="key-icon"><use href="#i-stop"/></svg><span class="key-label">Stop</span><span class="key-light"></span></span><span class="key-sub">⇧F5</span></span></span>
+    </div>
+  </div>
+</body>
+</html>

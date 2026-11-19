@@ -55,7 +55,7 @@ Env sets, for a project's .env secrets:
 
 Privacy: AuthDeck collects nothing, and has no account and no server. Your keys, settings, codes and env values stay on your devices, and everything the app sends goes only to the computer you paired, over an encrypted connection. Env set files stay in your own project; you decide where to push them. The camera is used only to scan QR codes.
 
-AuthDeck needs AuthDeck Agent running on a computer on the same network.
+AuthDeck needs AuthDeck Agent running on a computer on the same network. Download it free from https://authdeck.in.
 
 ## Keywords (App Store, 100 max, comma separated, no spaces)
 
@@ -70,9 +70,30 @@ AuthDeck needs AuthDeck Agent running on a computer on the same network.
 | App Store | Developer Tools | Productivity |
 | Google Play | Productivity | (Play has one category) |
 
-## Support URL / website
+## Version
 
-Required by the App Store. Use the public page where the agent is downloaded, or the page hosting the privacy policy.
+0.4.1 (iOS build 8, Android versionCode 8).
+
+## Support URL / website, privacy policy and contact
+
+| Field | Value |
+| --- | --- |
+| Website and support URL | https://authdeck.in (also where AuthDeck Agent is downloaded) |
+| Privacy policy URL | https://authdeck.in/privacy/ |
+| Contact email | hello@authdeck.in |
+
+The App Store requires a support URL; Play asks for an email and takes a website.
+
+## Graphics (Google Play)
+
+| Asset | File |
+| --- | --- |
+| App icon | `play-icon.png` (512 × 512) |
+| Feature graphic | `play/feature-graphic.png` (1024 × 500) |
+| Phone screenshots | `play/screenshots/phone-01.png` to `phone-06.png` (1080 × 1920) |
+| 10" tablet screenshots | `play/screenshots/tablet-01.png` to `tablet-03.png` (1600 × 2560, 2560 × 1600) |
+
+`README.md` lists what each screenshot shows.
 
 ## Age rating
 

@@ -8,3 +8,4 @@ app/.expo/
 .claude/
 site/out/
 site/video/out/
+.gradle/
