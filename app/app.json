@@ -3,7 +3,7 @@
     "name": "AuthDeck",
     "slug": "authdeck",
     "scheme": "authdeck",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "requireFullScreen": false,
       "bundleIdentifier": "dev.authdeck.app",
-      "buildNumber": "8",
+      "buildNumber": "9",
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png",
@@ -54,7 +54,7 @@
     },
     "android": {
       "package": "dev.authdeck.app",
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "backgroundColor": "#22262E",
         "foregroundImage": "./assets/android-icon-foreground.png",

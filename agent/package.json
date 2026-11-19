@@ -1,6 +1,6 @@
 {
   "name": "authdeck-agent",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "FSL-1.1-MIT",
   "description": "AuthDeck desktop agent: lists installed apps and runs the actions sent by the AuthDeck tablet app.",
   "private": true,

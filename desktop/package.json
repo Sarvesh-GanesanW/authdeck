@@ -1,7 +1,7 @@
 {
   "name": "authdeck-agent-desktop",
   "productName": "AuthDeck Agent",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "FSL-1.1-MIT",
   "description": "AuthDeck Agent: lets the AuthDeck tablet and phone app control this computer.",
   "private": true,
