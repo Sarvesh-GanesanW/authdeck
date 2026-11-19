@@ -60,6 +60,13 @@ async function sha256(path) {
   return hash.digest('hex');
 }
 
+/** Media are cached for a week, so each address carries a fingerprint of the file: a new video
+ * gets a new address, and browsers and Cloudflare fetch it at once instead of keeping the old one. */
+async function mediaUrl(name) {
+  const fingerprint = (await sha256(join(SRC, 'media', name))).slice(0, 12);
+  return `media/${name}?v=${fingerprint}`;
+}
+
 function megabytes(bytes) {
   return `${Math.round(bytes / 1_000_000)} MB`;
 }
@@ -157,6 +164,8 @@ async function build() {
     AGENT_ROWS: files.filter((f) => f.group === 'agent').map(downloadRow).join(''),
     APP_ROWS: files.filter((f) => f.group === 'app').map(downloadRow).join(''),
     PRIMARY_DOWNLOADS: JSON.stringify(primaryDownloads(files)).replace(/</g, '\\u003c'),
+    PROMO_VIDEO: await mediaUrl('authdeck-promo.mp4'),
+    PROMO_POSTER: await mediaUrl('authdeck-promo-poster.webp'),
   });
   await renderPage(join('privacy', 'index.html'), '../', {
     POLICY: markdownToHtml(await readFile(PRIVACY_SOURCE, 'utf8')),

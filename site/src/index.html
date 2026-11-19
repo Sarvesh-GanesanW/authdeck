@@ -66,8 +66,8 @@
 
     <div class="film">
       <div class="film-frame">
-        <video class="film-video" id="film" width="1920" height="1080" muted loop playsinline controls preload="auto" poster="media/authdeck-promo-poster.webp" aria-label="AuthDeck demo: keys tapped on a phone run tests and start a dev server on a computer, a two-factor code types itself into a sign-in form, and the phone releases a project's .env secrets.">
-          <source src="media/authdeck-promo.mp4" type="video/mp4">
+        <video class="film-video" id="film" width="1920" height="1080" muted loop playsinline controls preload="auto" poster="{{PROMO_POSTER}}" aria-label="AuthDeck demo: keys tapped on a phone run tests and start a dev server on a computer, a two-factor code types itself into a sign-in form, and the phone releases a project's .env secrets.">
+          <source src="{{PROMO_VIDEO}}" type="video/mp4">
         </video>
         <button type="button" class="btn btn-primary film-start" id="film-start" hidden><span class="btn-face"><svg aria-hidden="true"><use href="#i-play"/></svg>Play the video</span></button>
         <div class="film-controls" id="film-controls" hidden>

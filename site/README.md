@@ -31,12 +31,13 @@ Its tests: `node --test site/markdown.test.mjs`.
 
 ## The demo video
 
-The hero plays `src/media/authdeck-promo.mp4` (muted, on a loop) over the poster
-`src/media/authdeck-promo-poster.webp`. The page refers to those two names only, so replacing the
-video needs no code change:
+The hero plays `src/media/authdeck-promo.mp4` (muted, on a loop, with a button for sound) over the
+poster `src/media/authdeck-promo-poster.webp`. It is the version scored with "Keys Up", the
+chiptune composed in `site/video/compose.mjs`, which we own outright. The page refers to those two
+names only, so replacing the video needs no code change:
 
-1. Re-render it with `node site/video/render.mjs` (see `site/video/README.md`) and copy
-   `site/video/out/authdeck-promo.mp4` over `site/src/media/authdeck-promo.mp4`. It must be H.264
+1. Re-render it (the "Original chiptune" commands in `site/video/README.md`) and copy
+   `site/video/out/authdeck-promo-original.mp4` over `site/src/media/authdeck-promo.mp4`. It must be H.264
    and AAC in an MP4 with its index at the front, so it starts before it has fully downloaded. If
    a file doesn't have that, copy it with
    `ffmpeg -i in.mp4 -c copy -movflags +faststart site/src/media/authdeck-promo.mp4`.
@@ -46,8 +47,8 @@ video needs no code change:
 3. If what the video shows changed, update its description in the `aria-label` on `<video>` in
    `src/index.html`.
 4. Deploy with `site/deploy.sh`. `/media/*` is cached for 7 days, by browsers and by Cloudflare,
-   so to show the new video at once, purge `https://authdeck.in/media/` in Cloudflare's cache.
-   Returning visitors' browsers can still keep the old one for up to a week.
+   so the build adds a fingerprint of each file to its address (`authdeck-promo.mp4?v=…`). A new
+   video gets a new address and shows at once, with no cache to purge.
 
 The preview command above uses Python's server, which ignores Range requests; the video still
 plays there, but seeking and looping are only reliable on the real host.
