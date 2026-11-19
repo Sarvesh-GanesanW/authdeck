@@ -2,19 +2,29 @@
 /**
  * Renders the AuthDeck promo (scene.html) to an MP4, frame by frame, in headless Chrome.
  *
- *   node site/video/render.mjs                 full video into site/video/out/authdeck-promo.mp4
- *   node site/video/render.mjs --stills 1,6.2  PNG frames at those times into site/video/out/stills/
+ *   node site/video/render.mjs                 effects only, into site/video/out/authdeck-promo.mp4
+ *   node site/video/render.mjs --music FILE --bpm 140 --offset 0 --ending 147.42 --key D --out chiptune
+ *                                              cut to that track's beat grid, into out/authdeck-promo-chiptune.mp4
+ *   node site/video/render.mjs --stills 1,6.2  PNG frames at those (output) times into site/video/out/stills/
  *   node site/video/render.mjs --serve         serve the scene for a browser preview (?t=6.2 or ?play)
  *
- * The page exposes `promo.render(t)`, which sets the exact state for time t, so frames never
- * depend on how fast the machine is. Click sounds are synthesised here, one per tap.
+ * Music options: --offset is the track time of the bar line that plays at 0 s; --ending is the
+ * track time of its closing hit, which the video jumps to so it lands on the end-card logo press;
+ * --key sets the success blips' key; --fade is the closing fade in seconds (default 1, 0 for none).
+ *
+ * The page exposes `promo.render(t)`, which sets the exact state for story time t, so frames never
+ * depend on how fast the machine is. beat-sync.mjs maps output time to story time.
  */
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, extname, join, normalize, sep } from 'node:path';
+import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+import { planTimeline } from './beat-sync.mjs';
+import { effectTracks, tonicFor } from './sound.mjs';
+import { buildSoundtrack } from './soundtrack.mjs';
 
 const VIDEO = dirname(fileURLToPath(import.meta.url));
 const SITE = dirname(VIDEO);
@@ -24,7 +34,6 @@ const OUT = join(VIDEO, 'out');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const WIDTH = 1920;
 const HEIGHT = 1080;
-const SAMPLE_RATE = 48000;
 
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
@@ -119,7 +128,7 @@ async function openScene(url, profileDir) {
   for (let i = 0; i < 100 && !(await evaluate(cdp, 'Boolean(window.promo)')); i++) await sleep(100);
   await evaluate(cdp, 'window.promo.ready');
   if (cdp.errors.length) throw new Error(`The scene failed to load: ${cdp.errors.join('; ')}`);
-  const timeline = await evaluate(cdp, '({ fps: promo.fps, duration: promo.duration, presses: promo.presses })');
+  const timeline = await evaluate(cdp, '({ fps: promo.fps, duration: promo.duration, presses: promo.presses, cues: promo.cues })');
   const frame = async (t) => {
     await evaluate(cdp, `promo.render(${t})`);
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
@@ -134,66 +143,6 @@ async function openScene(url, profileDir) {
   return { timeline, frame, close };
 }
 
-/* ---------- Click track ---------- */
-
-/** A small seeded generator, so the clicks sound the same on every render. */
-function seededRandom(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 2 ** 32;
-  };
-}
-
-/** A short keycap click: a noise transient, a bright ping and a low body, each decaying fast. */
-function addClick(samples, at, random) {
-  const start = Math.round(at * SAMPLE_RATE);
-  const ping = 3000 + random() * 500;
-  const body = 170 + random() * 40;
-  const length = Math.round(0.06 * SAMPLE_RATE);
-  let smoothed = 0;
-  for (let i = 0; i < length && start + i < samples.length; i++) {
-    const s = i / SAMPLE_RATE;
-    smoothed = 0.6 * smoothed + 0.4 * (random() * 2 - 1);
-    const value = smoothed * Math.exp(-s / 0.0018) * 0.55
-      + Math.sin(2 * Math.PI * ping * s) * Math.exp(-s / 0.006) * 0.22
-      + Math.sin(2 * Math.PI * body * s) * Math.exp(-s / 0.016) * 0.4;
-    samples[start + i] += value * 0.5;
-  }
-  // The softer tick of the key coming back up.
-  const release = start + Math.round(0.1 * SAMPLE_RATE);
-  for (let i = 0; i < 0.02 * SAMPLE_RATE && release + i < samples.length; i++) {
-    const s = i / SAMPLE_RATE;
-    samples[release + i] += (random() * 2 - 1) * Math.exp(-s / 0.0012) * 0.12;
-  }
-}
-
-function clickTrack(duration, presses) {
-  const samples = new Float32Array(Math.ceil(duration * SAMPLE_RATE));
-  const random = seededRandom(47474);
-  for (const press of presses) addClick(samples, press.at, random);
-  return samples;
-}
-
-function wav(samples) {
-  const data = Buffer.alloc(samples.length * 2);
-  samples.forEach((v, i) => data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, v)) * 32767), i * 2));
-  const header = Buffer.alloc(44);
-  header.write('RIFF', 0);
-  header.writeUInt32LE(36 + data.length, 4);
-  header.write('WAVEfmt ', 8);
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(1, 20);
-  header.writeUInt16LE(1, 22);
-  header.writeUInt32LE(SAMPLE_RATE, 24);
-  header.writeUInt32LE(SAMPLE_RATE * 2, 28);
-  header.writeUInt16LE(2, 32);
-  header.writeUInt16LE(16, 34);
-  header.write('data', 36);
-  header.writeUInt32LE(data.length, 40);
-  return Buffer.concat([header, data]);
-}
-
 /* ---------- Encoding ---------- */
 
 function startEncoder({ fps, duration, audioPath, outPath }) {
@@ -204,7 +153,7 @@ function startEncoder({ fps, duration, audioPath, outPath }) {
     '-map', '0:v', '-map', '1:a',
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-tune', 'animation',
     '-pix_fmt', 'yuv420p', '-r', String(fps),
-    '-c:a', 'aac', '-b:a', '128k', '-ar', String(SAMPLE_RATE),
+    '-c:a', 'copy',
     '-t', String(duration), '-movflags', '+faststart', outPath,
   ], { stdio: ['pipe', 'inherit', 'inherit'] });
   const done = new Promise((resolve, reject) => {
@@ -219,37 +168,96 @@ function startEncoder({ fps, duration, audioPath, outPath }) {
   return { write, finish };
 }
 
-async function renderVideo(scene, work) {
-  const { fps, duration, presses } = scene.timeline;
-  const audioPath = join(work, 'clicks.wav');
-  await writeFile(audioPath, wav(clickTrack(duration, presses)));
+
+/** The output timeline for these options: story time as is, or fitted to the music's beats. */
+function planFor(timeline, options) {
+  const plan = planTimeline({ cues: timeline.cues, presses: timeline.presses, storyDuration: timeline.duration, bpm: options.bpm });
+  const lastStoryFrame = timeline.duration - 1 / timeline.fps;
+  // Past the logo press the end card is still, so the video can hold it until the music's bar line.
+  return { ...plan, frameAt: (out) => Math.min(plan.toStory(out), lastStoryFrame) };
+}
+
+function describePlan(plan) {
+  if (!plan.grid) return;
+  console.log(`At ${plan.grid.bpm} BPM (beat ${plan.grid.beat.toFixed(3)} s, bar ${plan.grid.bar.toFixed(3)} s), ${plan.duration.toFixed(2)} s long:`);
+  for (const point of plan.points.slice(1)) {
+    const beats = point.out / plan.grid.beat;
+    console.log(`  ${point.label.padEnd(24)} story ${point.story.toFixed(2).padStart(6)} -> ${point.out.toFixed(3).padStart(7)} s  (beat ${beats.toFixed(2)}, bar ${(plan.grid.beat * beats / plan.grid.bar).toFixed(2)})`);
+  }
+}
+
+async function renderVideo(scene, work, options) {
+  const { fps, presses, cues } = scene.timeline;
+  const plan = planFor(scene.timeline, options);
+  describePlan(plan);
+  const tonic = options.key ? tonicFor(options.key) : undefined;
+  const effects = effectTracks({ duration: plan.duration, presses, cues, toOut: plan.toOut, tonic });
+  const audioPath = await buildSoundtrack({ work, duration: plan.duration, effects, music: options.music, finalHit: plan.finalHit });
   await mkdir(OUT, { recursive: true });
-  const outPath = join(OUT, 'authdeck-promo.mp4');
-  const encoder = startEncoder({ fps, duration, audioPath, outPath });
-  const frames = Math.round(duration * fps);
+  const outPath = join(OUT, options.out ? `authdeck-promo-${options.out}.mp4` : 'authdeck-promo.mp4');
+  const encoder = startEncoder({ fps, duration: plan.duration, audioPath, outPath });
+  const frames = Math.round(plan.duration * fps);
   for (let i = 0; i < frames; i++) {
-    await encoder.write(await scene.frame(i / fps));
+    await encoder.write(await scene.frame(plan.frameAt(i / fps)));
     if (i % fps === 0) process.stdout.write(`\rFrame ${i}/${frames}`);
   }
   await encoder.finish();
-  console.log(`\rWrote ${outPath} (${frames} frames). Clicks at ${presses.map((p) => p.at.toFixed(2)).join(', ')} s.`);
+  console.log(`\rWrote ${outPath} (${frames} frames). Taps at ${presses.map((p) => plan.toOut(p.at).toFixed(2)).join(', ')} s.`);
 }
 
-async function renderStills(scene, times) {
+async function renderStills(scene, times, options) {
+  const plan = planFor(scene.timeline, options);
   const dir = join(OUT, 'stills');
   await mkdir(dir, { recursive: true });
   for (const t of times) {
     const path = join(dir, `t-${t.toFixed(2)}.png`);
-    await writeFile(path, await scene.frame(t));
+    await writeFile(path, await scene.frame(plan.frameAt(t)));
     console.log(`Wrote ${path}`);
   }
 }
 
+function readOptions(argv) {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      serve: { type: 'boolean' },
+      stills: { type: 'string' },
+      music: { type: 'string' },
+      bpm: { type: 'string' },
+      offset: { type: 'string', default: '0' },
+      ending: { type: 'string' },
+      key: { type: 'string' },
+      fade: { type: 'string', default: '1' },
+      out: { type: 'string' },
+    },
+  });
+  const number = (name) => {
+    const value = Number(values[name]);
+    if (!Number.isFinite(value)) throw new Error(`--${name} must be a number, got "${values[name]}".`);
+    return value;
+  };
+  if (values.music && !values.bpm) throw new Error('--music needs --bpm (and usually --offset) so the cuts can follow the beat.');
+  if (values.out && !/^[a-z0-9-]+$/.test(values.out)) throw new Error('--out takes a short name such as "chiptune" (letters, digits, dashes).');
+  return {
+    serve: values.serve,
+    stills: values.stills?.split(',').map(Number),
+    bpm: values.bpm ? number('bpm') : undefined,
+    key: values.key,
+    out: values.out,
+    music: {
+      path: values.music ? resolve(values.music) : undefined,
+      offset: number('offset'),
+      ending: values.ending === undefined ? undefined : number('ending'),
+      fade: number('fade'),
+    },
+  };
+}
+
 async function main() {
-  const args = process.argv.slice(2);
+  const options = readOptions(process.argv.slice(2));
   const server = await startServer();
   const url = `http://127.0.0.1:${server.address().port}/video/scene.html`;
-  if (args.includes('--serve')) {
+  if (options.serve) {
     console.log(`Preview at ${url}?play or ${url}?t=6.2 (Ctrl+C to stop).`);
     return;
   }
@@ -257,9 +265,8 @@ async function main() {
   let scene;
   try {
     scene = await openScene(url, join(work, 'chrome'));
-    const stillsAt = args.indexOf('--stills');
-    if (stillsAt >= 0) await renderStills(scene, args[stillsAt + 1].split(',').map(Number));
-    else await renderVideo(scene, work);
+    if (options.stills) await renderStills(scene, options.stills, options);
+    else await renderVideo(scene, work, options);
   } finally {
     await scene?.close();
     server.close();

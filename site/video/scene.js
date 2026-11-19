@@ -32,6 +32,8 @@ const SCENES = [
   { id: 'end', start: 25.6, end: 31.6, presses: [{ at: 3.75, target: 'end-mark' }] },
 ];
 const END_FINAL_AT = 3.3;
+const END_SYSTEMS_AT = 0.5;
+const INTRO_HEADLINE_AT = 1.0;
 const DURATION = SCENES[SCENES.length - 1].end;
 const WIPES = [...SCENES.slice(1).map((s) => s.start), SCENES[4].start + END_FINAL_AT];
 
@@ -41,6 +43,14 @@ const ENV_TIMES = { typeCmd: 0.4, check: 1.75, ask: 2.05, sheetIn: 2.2, sheetOut
 const SHEET_TRAVEL = 520;
 
 const OTP = '482913';
+const TEST_COMMAND = 'npm test';
+const ENV_COMMAND = 'authdeck env run -- npm run dev';
+const CAPTIONS = {
+  tap: 'Tap a key on your phone.',
+  does: 'Your computer does it.',
+  codes: '2FA codes type themselves.',
+  env: '.env secrets, released from your phone.',
+};
 /** Seconds already gone in each code's 30 s window at t = 0, chosen so no code rolls over on screen. */
 const TIMER_OFFSETS = { github: 27, cloud: 20, steam: 0, aws: 9 };
 const TOTP_PERIOD = 30;
@@ -162,7 +172,7 @@ function testTerminal(l) {
   const T = KEYS_TIMES;
   const cursorOn = isCursorOn(l);
   if (l < T.typeTest) return promptLine('', cursorOn);
-  const command = typed('npm test', T.typeTest, l);
+  const command = typed(TEST_COMMAND, T.typeTest, l);
   const lines = [promptLine(command, l < T.testHeader)];
   if (l >= T.testHeader) lines.push(dim('> web@2.3.0 test'), dim('> vitest run'), '');
   if (l >= T.testsDone) lines.push(ok('✓ 24 tests passed in 1.6 s'), '', promptLine('', cursorOn));
@@ -172,7 +182,7 @@ function testTerminal(l) {
 function envTerminal(l) {
   const T = ENV_TIMES;
   if (l < T.typeCmd) return promptLine('', isCursorOn(l));
-  const lines = [promptLine(typed('authdeck env run -- npm run dev', T.typeCmd, l), l < T.check)];
+  const lines = [promptLine(typed(ENV_COMMAND, T.typeCmd, l), l < T.check)];
   if (l >= T.check) lines.push(dim('web: 12 variables, signatures check out (rev 7, epoch 2)'));
   if (l >= T.ask) lines.push(dim('Asking Pixel 8 to release them… waiting 0:03'));
   if (l >= T.allowed) lines.push(ok('Pixel 8 allowed web for 15 minutes (until 11:58).'));
@@ -188,7 +198,7 @@ function drawIntro(scene, l) {
   const big = $('intro').querySelector('.mark-big');
   show(big, !isLockup);
   show($('intro-lockup'), isLockup);
-  show($('intro-headline'), l >= 1.0);
+  show($('intro-headline'), l >= INTRO_HEADLINE_AT);
   // Power on like the deck: off, on, dim, on.
   big.style.opacity = l < 0.1 ? 0 : l < 0.2 ? 1 : l < 0.27 ? 0.4 : 1;
   pressMark(big, sincePress(scene, 'intro-mark', l));
@@ -210,8 +220,8 @@ function setStage(view) {
 function drawKeys(scene, l) {
   const T = KEYS_TIMES;
   setStage(STAGE_SCENES.keys);
-  if (l < T.caption2) setCaption('Tap a key on your phone.', l);
-  else setCaption('Your computer does it.', l - T.caption2);
+  if (l < T.caption2) setCaption(CAPTIONS.tap, l);
+  else setCaption(CAPTIONS.does, l - T.caption2);
 
   show($('palette'), l >= T.paletteOpen && l < T.paletteClose);
   show($('palette-cursor'), isCursorOn(l - T.paletteOpen));
@@ -226,7 +236,7 @@ function drawKeys(scene, l) {
 function drawCodes(scene, l) {
   const T = CODES_TIMES;
   setStage(STAGE_SCENES.codes);
-  setCaption('2FA codes type themselves.', l);
+  setCaption(CAPTIONS.codes, l);
 
   const dt = sincePress(scene, 'row-github', l);
   const row = $('row-github');
@@ -246,7 +256,7 @@ function drawCodes(scene, l) {
 function drawEnv(scene, l) {
   const T = ENV_TIMES;
   setStage(STAGE_SCENES.env);
-  setCaption('.env secrets, released from your phone.', l);
+  setCaption(CAPTIONS.env, l);
   setHtml($('term'), envTerminal(l));
   setTestsKey({ isRunning: false, isOk: true, l });
 
@@ -291,7 +301,7 @@ function drawEnd(scene, l) {
   const isFinal = l >= END_FINAL_AT;
   show($('end-facts'), !isFinal);
   show($('end-final'), isFinal);
-  $('end-systems').style.visibility = l >= 0.5 ? 'visible' : 'hidden';
+  $('end-systems').style.visibility = l >= END_SYSTEMS_AT ? 'visible' : 'hidden';
   pressMark($('end-final').querySelector('.mark'), sincePress(scene, 'end-mark', l));
 }
 
@@ -360,7 +370,41 @@ const ready = Promise.all([loadIcons(), loadFonts()]).then(() => render(0));
 /** Taps as absolute times, for the click track. */
 const presses = SCENES.flatMap((s) => s.presses.map((p) => ({ at: s.start + p.at, target: p.target })));
 
-window.promo = { fps: FPS, duration: DURATION, presses, ready, render };
+const sceneStart = (id) => SCENES.find((s) => s.id === id).start;
+
+/** When each visible character of `text` appears, typed from `startAt` (spaces make no sound). */
+function keystrokes(text, startAt) {
+  return [...text].flatMap((char, i) => (char === ' ' ? [] : [startAt + i * TYPE_STEP]));
+}
+
+/**
+ * What the soundtrack follows, as absolute story times: cuts, taps, typed characters, the three
+ * success moments, and every caption with the time it stays on screen (for reading-time checks).
+ */
+function soundCues() {
+  const keys = sceneStart('keys');
+  const codes = sceneStart('codes');
+  const env = sceneStart('env');
+  const end = sceneStart('end');
+  const digits = [...OTP].map((_, i) => codes + CODES_TIMES.firstDigit + i * CODES_TIMES.digitStep);
+  return {
+    cuts: WIPES,
+    wipeHalf: WIPE_HALF,
+    typing: [...keystrokes(TEST_COMMAND, keys + KEYS_TIMES.typeTest), ...digits, ...keystrokes(ENV_COMMAND, env + ENV_TIMES.typeCmd)],
+    successes: [keys + KEYS_TIMES.testsDone, codes + CODES_TIMES.signedIn, env + ENV_TIMES.allowed],
+    captions: [
+      { text: $('intro-headline').textContent, from: INTRO_HEADLINE_AT, to: keys },
+      { text: CAPTIONS.tap, from: keys, to: keys + KEYS_TIMES.caption2 },
+      { text: CAPTIONS.does, from: keys + KEYS_TIMES.caption2, to: codes },
+      { text: CAPTIONS.codes, from: codes, to: env },
+      { text: CAPTIONS.env, from: env, to: end },
+      { text: document.querySelector('#end-facts .end-line').textContent, from: end, to: end + END_FINAL_AT },
+      { text: $('end-systems').textContent, from: end + END_SYSTEMS_AT, to: end + END_FINAL_AT },
+    ],
+  };
+}
+
+window.promo = { fps: FPS, duration: DURATION, presses, cues: soundCues(), ready, render };
 
 // Preview in a browser: ?t=12.5 shows one frame, ?play plays it in real time.
 const params = new URLSearchParams(location.search);
