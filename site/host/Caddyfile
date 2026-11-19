@@ -24,7 +24,9 @@ http://:8735 {
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 		-Server
 	}
-	@assets path /fonts/* /img/*
+	# file_server answers Range requests, which video players use to seek and loop. encode leaves
+	# video/mp4 alone (it only compresses text-like types), so those ranges reach the file as asked.
+	@assets path /fonts/* /img/* /media/*
 	header @assets Cache-Control "public, max-age=604800"
 	# no-transform keeps Cloudflare from injecting its analytics script, which the CSP would block.
 	@html path / /index.html /privacy/ /privacy/index.html /downloads/ /downloads/index.html

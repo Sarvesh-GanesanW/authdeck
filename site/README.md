@@ -1,8 +1,9 @@
 # The AuthDeck website
 
 Static pages in `src/` (the home page and the privacy policy), drawn like the app: the Graphite, Paper and Tide colourways, voxel keys
-with hard shadows, Pixelify Sans for titles and IBM Plex Mono for text. The deck at the top is a
-demo you can tap; nothing on the page talks to a computer or makes real codes.
+with hard shadows, Pixelify Sans for titles and IBM Plex Mono for text. The hero shows a demo
+video; the deck in the keys section is a demo you can tap. Nothing on the page talks to a
+computer or makes real codes.
 
 ## Build and preview
 
@@ -27,6 +28,29 @@ Google Play and the App Store. Edit the Markdown, never the built page. `markdow
 and knows only what the policy uses: `#` and `##` headings, paragraphs, `- ` lists, inline code
 and `https://` or `mailto:` links. Anything else stops the build with the line it can't handle.
 Its tests: `node --test site/markdown.test.mjs`.
+
+## The demo video
+
+The hero plays `src/media/authdeck-promo.mp4` (muted, on a loop) over the poster
+`src/media/authdeck-promo-poster.webp`. The page refers to those two names only, so replacing the
+video needs no code change:
+
+1. Re-render it with `node site/video/render.mjs` (see `site/video/README.md`) and copy
+   `site/video/out/authdeck-promo.mp4` over `site/src/media/authdeck-promo.mp4`. It must be H.264
+   and AAC in an MP4 with its index at the front, so it starts before it has fully downloaded. If
+   a file doesn't have that, copy it with
+   `ffmpeg -i in.mp4 -c copy -movflags +faststart site/src/media/authdeck-promo.mp4`.
+2. If the picture changed, make a new poster from a frame where the phone and the computer are
+   both mid-action, and keep it under about 150 KB:
+   `ffmpeg -ss 10 -i site/src/media/authdeck-promo.mp4 -frames:v 1 /tmp/poster.png && cwebp -q 82 -m 6 /tmp/poster.png -o site/src/media/authdeck-promo-poster.webp`
+3. If what the video shows changed, update its description in the `aria-label` on `<video>` in
+   `src/index.html`.
+4. Deploy with `site/deploy.sh`. `/media/*` is cached for 7 days, by browsers and by Cloudflare,
+   so to show the new video at once, purge `https://authdeck.in/media/` in Cloudflare's cache.
+   Returning visitors' browsers can still keep the old one for up to a week.
+
+The preview command above uses Python's server, which ignores Range requests; the video still
+plays there, but seeking and looping are only reliable on the real host.
 
 The colour switch is in `src/colorway.js`, which every page loads; `src/site.js` is the home
 page's demo and only the home page loads it.

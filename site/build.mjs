@@ -37,7 +37,7 @@ const ICONS = [
   'android', 'apple', 'check', 'copy', 'download', 'external-link', 'git-merge', 'key', 'keyboard',
   'linux', 'link', 'list-box', 'lock', 'monitor', 'play', 'qr-code', 'reload', 'server', 'shield',
   'smartphone', 'square-chevron-right', 'stop', 'tablet', 'terminal', 'text-align-left', 'text-cursor-input',
-  'app-windows', 'bug', 'zap',
+  'app-windows', 'bug', 'zap', 'pause', 'volume-3', 'volume-x',
 ];
 
 /** Everything a visitor can download, in the order the page lists it. */

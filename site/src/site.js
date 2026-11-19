@@ -1,6 +1,7 @@
 // The home page's behaviour (colorway.js handles the colours): the download button that matches the
-// visitor's system, the sample deck in the hero (with its opening press and idle demo), the sample
-// codes, the env section's one-time replay, and copying checksums.
+// visitor's system, the demo video in the hero, the sample deck in the keys section (with its
+// opening press and idle demo), the sample codes, the env section's one-time replay, and copying
+// checksums.
 // Everything here is a demo: no code on this page talks to a computer or makes real 2FA codes.
 'use strict';
 
@@ -9,12 +10,16 @@
   var TIMER_STEP_S = 2;
   var ENDING_S = 5;
   var STEAM_ALPHABET = '23456789BCDFGHJKMNPQRTVWXY';
-  var ACTIVITY_ROWS = 3;
+  // The activity log shows at least this many rows, and more when its plate is taller.
+  var ACTIVITY_MIN_ROWS = 3;
+  var ACTIVITY_ROW_PX = 28;
   var COPIED_MS = 1600;
   // Key motion, matching --press and the spring-back animation in style.css.
   var PRESS_MS = 60;
   var RELEASE_MS = 120;
-  // The deck powers on in CSS (three rows, about 420 ms); then the first key presses itself.
+  // The deck powers on in CSS (three rows, about 420 ms) once this much of it is on screen; then the
+  // first key presses itself.
+  var DECK_VISIBLE_RATIO = 0.4;
   var INTRO_PRESS_MS = 460;
   // The idle demo: how long the deck must sit untouched on screen, the pace, and when it gives up.
   var IDLE_START_MS = 3000;
@@ -184,6 +189,11 @@
 
   var emptyRow = null;
 
+  /** How many rows fit in the log, which grows with the plate beside the keys section's text. */
+  function activityRows() {
+    return Math.max(ACTIVITY_MIN_ROWS, Math.floor(activity.clientHeight / ACTIVITY_ROW_PX));
+  }
+
   /**
    * Adds a row at the top of the activity list and returns a function that updates its status.
    * Rows the page adds by itself are quiet: screen readers hear only what the visitor pressed.
@@ -201,7 +211,7 @@
     row.appendChild(statusText);
     row.className = 'is-' + state;
     activity.insertBefore(row, activity.firstChild);
-    while (activity.children.length > ACTIVITY_ROWS) activity.removeChild(activity.lastChild);
+    while (activity.children.length > activityRows()) activity.removeChild(activity.lastChild);
     if (!quiet) announce(title + ': ' + status);
     return function (nextStatus, nextState) {
       statusText.textContent = nextStatus;
@@ -407,8 +417,120 @@
     document.addEventListener('touchstart', function () {}, { passive: true });
 
     if (reduceMotion || !('IntersectionObserver' in window)) return;
-    window.setTimeout(function () { autoPress(deck.querySelector('.key')); }, INTRO_PRESS_MS);
-    startIdleDemo(deck);
+    powerOnWhenSeen(deck);
+  }
+
+  /**
+   * The deck waits dimmed until it scrolls into view, then powers on, presses its first key and
+   * starts the idle demo. A visitor who touches it first gets neither the press nor the demo.
+   */
+  function powerOnWhenSeen(deck) {
+    var touched = false;
+    function markTouched() { touched = true; }
+    deck.addEventListener('pointerdown', markTouched);
+    deck.addEventListener('keydown', markTouched);
+    deck.classList.add('is-standby');
+
+    var observer = new IntersectionObserver(function (entries) {
+      if (!entries[entries.length - 1].isIntersecting) return;
+      observer.disconnect();
+      deck.classList.remove('is-standby');
+      deck.classList.add('is-powering');
+      if (touched) return;
+      window.setTimeout(function () { if (!touched) autoPress(deck.querySelector('.key')); }, INTRO_PRESS_MS);
+      startIdleDemo(deck);
+    }, { threshold: DECK_VISIBLE_RATIO });
+    observer.observe(deck);
+  }
+
+  // ---------- The demo video ----------
+
+  /** Shows a control's state: its icon from the sprite and its label. */
+  function setControl(button, icon, label) {
+    button.querySelector('use').setAttribute('href', '#i-' + icon);
+    button.querySelector('.btn-face > span').textContent = label;
+  }
+
+  /**
+   * The hero video plays muted on a loop while it is on screen, unless the visitor prefers reduced
+   * motion or the browser refuses autoplay; then it waits on its poster behind a play button.
+   * "Play with sound" restarts it from the top with sound; after that the button mutes and unmutes.
+   */
+  function setupFilm() {
+    var video = document.getElementById('film');
+    var start = document.getElementById('film-start');
+    var controls = document.getElementById('film-controls');
+    var playback = document.getElementById('film-playback');
+    var sound = document.getElementById('film-sound');
+    var wantsPlaying = !reduceMotion;
+    var hasPlayedWithSound = false;
+    var onScreen = true;
+
+    function showWaiting() {
+      start.hidden = false;
+      controls.hidden = true;
+    }
+
+    function showControls() {
+      setControl(playback, video.paused ? 'play' : 'pause', video.paused ? 'Play' : 'Pause');
+      if (!hasPlayedWithSound) setControl(sound, 'volume-3', 'Play with sound');
+      else if (video.muted) setControl(sound, 'volume-3', 'Sound on');
+      else setControl(sound, 'volume-x', 'Mute');
+    }
+
+    function play() {
+      video.play().catch(function (error) {
+        // A pause() while play() was pending rejects with AbortError; that is expected.
+        if (error.name === 'AbortError') return;
+        if (error.name !== 'NotAllowedError') throw error;
+        wantsPlaying = false;
+        showWaiting();
+      });
+    }
+
+    /** Plays while wanted, on screen and in a visible tab; otherwise holds still. */
+    function sync() {
+      if (wantsPlaying && onScreen && !document.hidden) {
+        if (video.paused) play();
+      } else if (!video.paused) {
+        video.pause();
+      }
+    }
+
+    function playFromTopWithSound() {
+      hasPlayedWithSound = true;
+      wantsPlaying = true;
+      video.currentTime = 0;
+      video.muted = false;
+      start.hidden = true;
+      controls.hidden = false;
+      showControls();
+      sync();
+    }
+
+    video.removeAttribute('controls');
+    ['play', 'pause', 'volumechange'].forEach(function (type) { video.addEventListener(type, showControls); });
+    start.addEventListener('click', playFromTopWithSound);
+    playback.addEventListener('click', function () {
+      wantsPlaying = video.paused;
+      sync();
+    });
+    sound.addEventListener('click', function () {
+      if (!hasPlayedWithSound) playFromTopWithSound();
+      else video.muted = !video.muted;
+    });
+    document.addEventListener('visibilitychange', sync);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        onScreen = entries[entries.length - 1].isIntersecting;
+        sync();
+      }).observe(video);
+    }
+
+    if (wantsPlaying) controls.hidden = false;
+    else showWaiting();
+    showControls();
+    sync();
   }
 
   // ---------- The env section's replay ----------
@@ -513,6 +635,7 @@
   }
 
   setupPrimaryDownload();
+  setupFilm();
   setupCodes();
   setupDeck();
   setupEnvReplay();
