@@ -32,12 +32,14 @@ Its tests: `node --test site/markdown.test.mjs`.
 ## The demo video
 
 The hero plays `src/media/authdeck-promo.mp4` (muted, on a loop, with a button for sound) over the
-poster `src/media/authdeck-promo-poster.webp`. It is the version scored with "Keys Up", the
-chiptune composed in `site/video/compose.mjs`, which we own outright. The page refers to those two
+poster `src/media/authdeck-promo-poster.webp`. It is the version scored with "It Takes A Hero" by
+Zane Little Music (CC0, from <https://opengameart.org/content/it-takes-a-hero>), the same cut used
+in posts; the footer credits it, though CC0 doesn't require that. The page refers to those two
 names only, so replacing the video needs no code change:
 
-1. Re-render it (the "Original chiptune" commands in `site/video/README.md`) and copy
-   `site/video/out/authdeck-promo-original.mp4` over `site/src/media/authdeck-promo.mp4`. It must be H.264
+1. Re-render it (the "Chiptune" command in `site/video/README.md`; the WAV isn't in the repo, so
+   download it from that page into `site/video/music/` first) and copy
+   `site/video/out/authdeck-promo-chiptune.mp4` over `site/src/media/authdeck-promo.mp4`. It must be H.264
    and AAC in an MP4 with its index at the front, so it starts before it has fully downloaded. If
    a file doesn't have that, copy it with
    `ffmpeg -i in.mp4 -c copy -movflags +faststart site/src/media/authdeck-promo.mp4`.
