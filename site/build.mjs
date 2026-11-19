@@ -26,6 +26,8 @@ const PARTIALS = join(SRC, 'partials');
 /** Pages with {{PLACEHOLDERS}}: written filled in, never copied as they are. */
 const TEMPLATES = [join(SRC, 'index.html'), join(SRC, 'privacy', 'index.html')];
 const LICENSE_URL = 'https://github.com/Sarvesh-GanesanW/authdeck/blob/main/LICENSE';
+/** Where people can chip in; the footer and the download section link to it. */
+const SUPPORT_URL = 'https://buymeacoffee.com/adultcudi';
 /** Where the site is published; link previews need it absolute. */
 const SITE_URL = process.env.AUTHDECK_SITE_URL ?? 'https://authdeck.in/';
 
@@ -37,7 +39,7 @@ const ICONS = [
   'android', 'apple', 'check', 'copy', 'download', 'external-link', 'git-merge', 'key', 'keyboard',
   'linux', 'link', 'list-box', 'lock', 'monitor', 'play', 'qr-code', 'reload', 'server', 'shield',
   'smartphone', 'square-chevron-right', 'stop', 'tablet', 'terminal', 'text-align-left', 'text-cursor-input',
-  'app-windows', 'bug', 'zap', 'pause', 'volume-3', 'volume-x',
+  'app-windows', 'bug', 'zap', 'pause', 'volume-3', 'volume-x', 'coffee',
 ];
 
 /** Everything a visitor can download, in the order the page lists it. */
@@ -132,7 +134,7 @@ function fillTemplate(template, values, name) {
 
 /** Fills a page template; `root` is the relative path from the page back to the site's top. */
 async function renderPage(relPath, root, values) {
-  const shared = { VERSION, ROOT: root, LICENSE_URL };
+  const shared = { VERSION, ROOT: root, LICENSE_URL, SUPPORT_URL };
   const footer = fillTemplate(await readFile(join(PARTIALS, 'footer.html'), 'utf8'), shared, 'partials/footer.html');
   const template = await readFile(join(SRC, relPath), 'utf8');
   const html = fillTemplate(template, {

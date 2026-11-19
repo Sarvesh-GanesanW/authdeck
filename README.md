@@ -158,6 +158,10 @@ The connection between the app and the agent is encrypted, and both ends prove w
 - [pixelarticons](https://github.com/halfmage/pixelarticons) by Gerrit Halfmann, under the MIT License.
 - The key sounds are synthesised by [app/scripts/gen-sounds.mjs](app/scripts/gen-sounds.mjs).
 
+## Support
+
+AuthDeck is free, with no ads and no account. If it's useful to you, you can [buy me a coffee](https://buymeacoffee.com/adultcudi).
+
 ## License
 
 AuthDeck is under the Functional Source License, version 1.1, MIT Future License (FSL-1.1-MIT). You may read, use, change and self-host it for free, for yourself or your company. You may not offer it, or a product built from it, as a commercial product or service that competes with AuthDeck. Two years after each release is published, that release is also available under the MIT License. The full terms are in [LICENSE](LICENSE).

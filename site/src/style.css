@@ -668,6 +668,9 @@ html[data-colorway='paper'] .term-ok { color: #17804a; }
 .first-run { margin: 0; display: grid; }
 .first-run > div { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--s3); padding: var(--s2) 0; border-top: 2px solid var(--line); }
 .first-run dt { font-weight: 600; }
+/* A quiet ask after the downloads: one line and a small button, wrapping under each other when narrow. */
+.support { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s3); margin-top: var(--s3); padding-top: var(--s3); border-top: 2px solid var(--line); color: var(--dim); }
+.support .btn-face svg { width: 20px; height: 20px; }
 .first-run dd { margin: 0; color: var(--dim); max-width: var(--measure); }
 
 /* ---------- Footer ---------- */
